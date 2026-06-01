@@ -1023,8 +1023,9 @@ function showEmpDetail(id) {
       <div class="ptab-pane" id="ptp-career">
         <div class="prof-section">
           <div class="sec-title">🗂️ 職歴・経験</div>
-          <div class="timeline">${careerHtml}</div>
-          ${!hasCareer?'<div class="lock-overlay" style="margin-top:12px"><div class="lock-icon">🔒</div><div class="lock-msg">職歴の詳細はマネージャー以上のみ閲覧可</div><button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="openRoleModal()">権限を切り替える</button></div>':''}
+          ${hasCareer
+            ? `<div class="timeline">${careerHtml}</div>`
+            : `<div class="lock-overlay"><div class="lock-icon">🔒</div><div class="lock-msg">職歴の詳細はマネージャー以上のみ閲覧可</div><div class="lock-sub">権限を切り替えると閲覧できます</div><button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="openRoleModal()">権限を切り替える</button></div>`}
         </div>
       </div>
 
