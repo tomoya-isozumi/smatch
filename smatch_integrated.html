@@ -57,7 +57,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Segoe UI',sans-serif;background
 .role-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid}
 .role-general{background:#f3f4f6;color:var(--sub);border-color:var(--border)}
 .role-manager{background:var(--brand-l);color:var(--brand);border-color:var(--brand-m)}
-.role-hr{background:#fdf4ff;color:#7e22ce;border-color:#d8b4fe}
+.role-executive{background:#fdf4ff;color:#7e22ce;border-color:#d8b4fe}
 
 /* ── PAGE ── */
 .page{display:none;padding:24px 28px;animation:fadeIn .18s ease}
@@ -246,6 +246,30 @@ tr:hover td{background:#fafafa}
 .form-input{padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;outline:none;width:100%;font-family:inherit}
 .form-input:focus{border-color:var(--brand)}
 
+/* ── EVALUATION ── */
+.eval-period-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:var(--brand-l);color:var(--brand);border-radius:999px;font-size:12px;font-weight:700;border:1.5px solid var(--brand-m);margin-bottom:20px}
+.eval-item{background:var(--card);border-radius:var(--radius);border:1.5px solid var(--border);padding:18px;margin-bottom:14px}
+.eval-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.eval-item-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px}
+.eval-score-badge{padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;background:#f3f4f6;color:var(--sub)}
+.eval-section{margin-bottom:14px}
+.eval-label{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.eval-textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.65;font-family:inherit;resize:vertical;outline:none;background:#fff;color:var(--text)}
+.eval-textarea:focus{border-color:var(--brand)}
+.eval-textarea[readonly]{background:#f9fafb;color:#374151}
+.eval-score-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+.score-btn{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);background:#fff;cursor:pointer;font-size:14px;font-weight:800;color:var(--sub);transition:all .15s;display:flex;align-items:center;justify-content:center}
+.score-btn:hover{border-color:var(--brand-m);color:var(--brand)}
+.score-btn.sel{background:var(--brand);color:#fff;border-color:var(--brand)}
+.mgr-eval-box{background:#f0fdf4;border:1.5px solid #6ee7b7;border-radius:10px;padding:14px;margin-top:8px}
+.mgr-eval-label{font-size:11px;font-weight:700;color:#065f46;margin-bottom:6px}
+.team-eval-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.team-eval-row:hover{background:var(--brand-l)}
+.team-eval-status{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px}
+.status-done{background:#d1fae5;color:#065f46}
+.status-progress{background:#fef3c7;color:#92400e}
+.status-pending{background:#f3f4f6;color:var(--sub)}
+
 /* ── NOTIFICATIONS ── */
 .notif-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
 .notif-row:last-child{border-bottom:none}
@@ -267,12 +291,17 @@ tr:hover td{background:#fafafa}
     <div class="sb-section">マイページ</div>
     <div class="sb-item active" id="nav-myprofile" onclick="showPage('myprofile',this)"><span class="sb-icon">👤</span>マイプロフィール</div>
     <div class="sb-item" id="nav-members" onclick="showPage('employees',this)"><span class="sb-icon">🗂️</span>メンバーを探す</div>
+    <div class="sb-item" id="nav-myeval" onclick="showPage('myeval',this)"><span class="sb-icon">📝</span>評価シート</div>
     <div id="mgmt-nav" style="display:none">
       <div class="sb-section">組織管理</div>
       <div class="sb-item" id="nav-dashboard" onclick="showPage('dashboard',this)"><span class="sb-icon">📊</span>ダッシュボード</div>
       <div class="sb-item" id="nav-skills" onclick="showPage('skills',this)"><span class="sb-icon">🎯</span>スキル管理</div>
       <div class="sb-item" id="nav-simulation" onclick="showPage('simulation',this)"><span class="sb-icon">🔄</span>異動シミュレーション</div>
       <div class="sb-item" id="nav-career" onclick="showPage('career',this)"><span class="sb-icon">🚀</span>キャリアパス・育成</div>
+      <div class="sb-item" id="nav-teameval" onclick="showPage('teameval',this)"><span class="sb-icon">✅</span>チーム評価管理</div>
+      <div id="exec-nav" style="display:none">
+        <div class="sb-item" id="nav-evaloverview" onclick="showPage('evaloverview',this)"><span class="sb-icon">📈</span>全社評価サマリー</div>
+      </div>
     </div>
   </div>
   <div class="sb-foot">Smatch v1.0 — CS部 五十棲 智哉</div>
@@ -289,10 +318,10 @@ tr:hover td{background:#fafafa}
       <button class="modal-close" onclick="document.getElementById('role-modal').classList.remove('open')">✕</button>
     </div>
     <div class="modal-body">
-      <p style="font-size:12px;color:var(--sub)">閲覧する権限レベルを選択してください。<br>マネージャー以上・人事はPINが必要です。</p>
+      <p style="font-size:12px;color:var(--sub)">閲覧する権限レベルを選択してください。<br>マネージャー以上・経営陣はPINが必要です。</p>
       <button onclick="setRole('general')" class="btn btn-ghost" style="width:100%;text-align:left;padding:12px 14px;font-size:13px">👤 一般社員&nbsp;<span style="font-size:10px;color:var(--sub);font-weight:400">スキル・概要などを閲覧</span></button>
       <div id="mgr-wrap">
-        <button onclick="document.getElementById('mgr-pin-wrap').style.display='flex'" class="btn btn-ghost" style="width:100%;text-align:left;padding:12px 14px;font-size:13px">🏅 マネージャー以上&nbsp;<span style="font-size:10px;color:var(--sub);font-weight:400">職歴詳細・Willを閲覧</span></button>
+        <button onclick="document.getElementById('mgr-pin-wrap').style.display='flex'" class="btn btn-ghost" style="width:100%;text-align:left;padding:12px 14px;font-size:13px">🏅 マネージャー以上&nbsp;<span style="font-size:10px;color:var(--sub);font-weight:400">職歴詳細・Will・チーム評価を閲覧</span></button>
         <div id="mgr-pin-wrap" style="display:none;gap:6px;margin-top:4px">
           <input type="password" id="mgr-pin" class="form-input" placeholder="PINを入力" style="flex:1">
           <button class="btn btn-primary" onclick="checkPin('manager')">確認</button>
@@ -300,14 +329,14 @@ tr:hover td{background:#fafafa}
         <div id="mgr-pin-err" style="font-size:11px;color:var(--danger);display:none;padding:2px 4px">PINが違います</div>
       </div>
       <div id="hr-wrap">
-        <button onclick="document.getElementById('hr-pin-wrap').style.display='flex'" class="btn btn-ghost" style="width:100%;text-align:left;padding:12px 14px;font-size:13px">🏢 人事部&nbsp;<span style="font-size:10px;color:var(--sub);font-weight:400">全情報を閲覧</span></button>
+        <button onclick="document.getElementById('hr-pin-wrap').style.display='flex'" class="btn btn-ghost" style="width:100%;text-align:left;padding:12px 14px;font-size:13px">👔 経営陣&nbsp;<span style="font-size:10px;color:var(--sub);font-weight:400">全情報・全社評価を閲覧・調整</span></button>
         <div id="hr-pin-wrap" style="display:none;gap:6px;margin-top:4px">
           <input type="password" id="hr-pin" class="form-input" placeholder="PINを入力" style="flex:1">
-          <button class="btn btn-primary" onclick="checkPin('hr')">確認</button>
+          <button class="btn btn-primary" onclick="checkPin('executive')">確認</button>
         </div>
         <div id="hr-pin-err" style="font-size:11px;color:var(--danger);display:none;padding:2px 4px">PINが違います</div>
       </div>
-      <div style="background:#f9fafb;border-radius:7px;padding:9px 12px;font-size:11px;color:var(--sub)">💡 デモ用PIN：マネージャー <strong>1234</strong> ／ 人事 <strong>hr01</strong></div>
+      <div style="background:#f9fafb;border-radius:7px;padding:9px 12px;font-size:11px;color:var(--sub)">💡 デモ用PIN：マネージャー <strong>1234</strong> ／ 経営陣 <strong>exec01</strong></div>
     </div>
   </div>
 </div>
@@ -478,6 +507,52 @@ tr:hover td{background:#fafafa}
       <tbody id="training-tbody"></tbody></table>
     </div>
   </div>
+</div>
+
+<!-- ── MY EVALUATION ── -->
+<div id="page-myeval" class="page">
+  <div class="topbar">
+    <div><div class="topbar-title">評価シート</div><div class="topbar-sub">目標設定・自己評価の入力</div></div>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="saveMyEval()">💾 保存する</button>
+      <div id="role-btn4" class="role-badge role-general" onclick="openRoleModal()" title="権限切替">👤 <span id="role-label4">一般社員</span></div>
+      <div class="avatar-sm" title="マイプロフィールへ" onclick="showPage('myprofile',document.getElementById('nav-myprofile'))" style="cursor:pointer">五</div>
+    </div>
+  </div>
+  <div style="padding:20px 28px" id="myeval-content"></div>
+</div>
+
+<!-- ── TEAM EVALUATION ── -->
+<div id="page-teameval" class="page">
+  <div class="topbar">
+    <div><div class="topbar-title">チーム評価管理</div><div class="topbar-sub">メンバーの目標確認・上長評価の入力</div></div>
+    <div class="topbar-right">
+      <div class="avatar-sm" title="マイプロフィールへ" onclick="showPage('myprofile',document.getElementById('nav-myprofile'))" style="cursor:pointer">五</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;padding:20px 28px">
+    <div class="card" style="padding:0;overflow:hidden;align-self:start">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700">メンバー一覧</div>
+      <div id="team-eval-list"></div>
+    </div>
+    <div id="team-eval-detail">
+      <div class="card" style="text-align:center;padding:40px 24px;color:var(--sub)">
+        <div style="font-size:36px;margin-bottom:10px">✅</div>
+        <p style="font-size:13px">左のメンバーを選択すると<br>評価シートが表示されます</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── EVAL OVERVIEW (EXECUTIVE) ── -->
+<div id="page-evaloverview" class="page">
+  <div class="topbar">
+    <div><div class="topbar-title">全社評価サマリー</div><div class="topbar-sub">全社員の評価状況・経営陣による最終調整</div></div>
+    <div class="topbar-right">
+      <div class="avatar-sm" title="マイプロフィールへ" onclick="showPage('myprofile',document.getElementById('nav-myprofile'))" style="cursor:pointer">五</div>
+    </div>
+  </div>
+  <div style="padding:20px 28px" id="evaloverview-content"></div>
 </div>
 
 </div><!-- /.main -->
@@ -653,18 +728,72 @@ const simDepts = [
   {name:'クリエイティブ',need:['デザイン','プレゼンテーション','ブランディング','SNS運用']},
 ];
 
+// ── Evaluation data
+const evalPeriod = '22期上半期';
+const evalItems = [
+  {key:'result', label:'成果考課', icon:'🎯', desc:'今期の業務目標・成果に関する評価'},
+  {key:'growth', label:'自己成長考課', icon:'📈', desc:'スキルアップ・能力開発に関する評価'},
+  {key:'behavior', label:'行動・能力考課', icon:'🤝', desc:'スマレジの行動指針に基づく評価'},
+];
+
+// Sample past evaluations for reference
+const evalHistory = {
+  0: [ // 五十棲
+    {period:'21期下半期', scores:{result:4, growth:3, behavior:4}, total:73, comment:'目標達成率高く、周囲への貢献も評価。'},
+    {period:'21期上半期', scores:{result:3, growth:4, behavior:4}, total:70, comment:'スキル向上顕著。次期はより成果にフォーカスを。'},
+  ],
+  1: [{period:'21期下半期', scores:{result:4, growth:4, behavior:3}, total:75, comment:'技術的成果は高水準。'}],
+  2: [{period:'21期下半期', scores:{result:5, growth:3, behavior:4}, total:80, comment:'年間目標を大幅超過。'}],
+  3: [{period:'21期下半期', scores:{result:3, growth:3, behavior:4}, total:68, comment:'インフラ安定化に貢献。'}],
+  4: [{period:'21期下半期', scores:{result:5, growth:4, behavior:5}, total:88, comment:'全社横断で卓越したリーダーシップ。'}],
+};
+
+// Current period eval data (22期上半期 - in progress)
+const currentEval = {
+  0: {
+    result:{goal:'22期上半期のNRR目標を達成し、担当顧客のアップセル率を前期比120%に引き上げる。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+    growth:{goal:'AI活用スキルをさらに高め、業務設計への組み込みを2件以上実施する。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+    behavior:{goal:'CS部門の育成体制整備を継続し、新メンバーの立ち上がり支援を担う。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+  },
+  1: {
+    result:{goal:'APIプラットフォームv3のリファクタリングを完了させ、レスポンス速度20%改善を達成する。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+    growth:{goal:'EM候補として社内の採用面接に3件以上参加し、採用基準策定に貢献する。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+    behavior:{goal:'コードレビュー文化をチームに根付かせ、PRの平均レビュー時間を半減させる。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+  },
+  2: {
+    result:{goal:'エンタープライズ案件3件以上のクローズ。担当ARRを前期比130%に。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+    growth:{goal:'データドリブン営業の手法を確立し、提案成功率を定量化する。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+    behavior:{goal:'飲食・小売チーム発足に向けて、業界専門チームの骨格を設計する。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+  },
+  3: {
+    result:{goal:'ゼロトラスト移行フェーズ1を完了。クラウドコスト月次20%削減を達成する。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+    growth:{goal:'AWS Security Specialty取得。社外勉強会での登壇1回以上。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+    behavior:{goal:'監視・アラート体制を高度化し、インシデント対応時間を40%短縮する。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+  },
+  4: {
+    result:{goal:'中期経営計画アップデートを完成させ、新規SaaS事業計画を取締役会承認まで進める。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+    growth:{goal:'AI活用を経営企画プロセスに組み込み、意思決定スピードを向上させる。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+    behavior:{goal:'全社OKR導入PMOとして、全部門の目標設定をQ1中に完了させる。', selfScore:null, selfComment:'', mgrScore:null, mgrComment:''},
+  },
+};
+
 // ── Access control
 let currentRole = 'general';
-const PINS = {manager:'1234', hr:'hr01'};
+const PINS = {manager:'1234', executive:'exec01'};
 
 function canView(sec) {
-  if (sec === 'career_detail') return currentRole === 'manager' || currentRole === 'hr';
-  if (sec === 'will')          return currentRole === 'manager' || currentRole === 'hr';
-  if (sec === 'hr_only')       return currentRole === 'hr';
+  if (sec === 'career_detail') return currentRole === 'manager' || currentRole === 'executive';
+  if (sec === 'will')          return currentRole === 'manager' || currentRole === 'executive';
+  if (sec === 'exec_only')     return currentRole === 'executive';
+  if (sec === 'mgr_eval')      return currentRole === 'manager' || currentRole === 'executive';
   return true;
 }
 function lockHtml(sec) {
-  const msgs = {career_detail:['マネージャー以上のみ閲覧可','職歴の詳細・実績情報は権限者のみ表示されます'],will:['マネージャー以上のみ閲覧可','キャリア志向・目標は権限者のみ表示されます']};
+  const msgs = {
+    career_detail:['マネージャー以上のみ閲覧可','職歴の詳細・実績情報は権限者のみ表示されます'],
+    will:['マネージャー以上のみ閲覧可','キャリア志向・目標は権限者のみ表示されます'],
+    exec_only:['経営陣のみ閲覧可','経営陣権限が必要です'],
+  };
   const [msg,sub] = msgs[sec]||['閲覧権限がありません',''];
   return `<div class="lock-overlay"><div class="lock-icon">🔒</div><div class="lock-msg">${msg}</div><div class="lock-sub">${sub}</div><button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="openRoleModal()">権限を切り替える</button></div>`;
 }
@@ -676,33 +805,37 @@ function openRoleModal() {
   document.getElementById('role-modal').classList.add('open');
 }
 function checkPin(role) {
-  const pin = document.getElementById((role==='manager'?'mgr':'hr')+'-pin').value;
+  const inputId = role==='manager' ? 'mgr-pin' : 'hr-pin';
+  const errId   = role==='manager' ? 'mgr-pin-err' : 'hr-pin-err';
+  const pin = document.getElementById(inputId).value;
   if (pin === PINS[role]) { setRole(role); document.getElementById('role-modal').classList.remove('open'); }
-  else { document.getElementById((role==='manager'?'mgr':'hr')+'-pin-err').style.display='block'; }
+  else { document.getElementById(errId).style.display='block'; }
 }
 function setRole(role) {
   currentRole = role;
   document.getElementById('role-modal').classList.remove('open');
-  ['role-btn','role-btn2','role-btn3'].forEach(id=>{
+  ['role-btn','role-btn2','role-btn3','role-btn4'].forEach(id=>{
     const btn = document.getElementById(id); if(!btn)return;
     const lbl = btn.querySelector('span');
     btn.className = 'role-badge';
     if(role==='general'){btn.classList.add('role-general');if(lbl)lbl.textContent='一般社員';}
     else if(role==='manager'){btn.classList.add('role-manager');if(lbl)lbl.textContent='マネージャー以上';}
-    else{btn.classList.add('role-hr');if(lbl)lbl.textContent='人事部';}
+    else{btn.classList.add('role-executive');if(lbl)lbl.textContent='経営陣';}
   });
   // Show/hide mgmt nav
   const mgmtNav = document.getElementById('mgmt-nav');
+  const execNav = document.getElementById('exec-nav');
   if(role==='general') {
     mgmtNav.style.display='none';
-    // If on a management page, go back to myprofile
+    if(execNav) execNav.style.display='none';
     const activePage = document.querySelector('.page.active');
-    const mgmtPages = ['page-dashboard','page-skills','page-simulation','page-career'];
+    const mgmtPages = ['page-dashboard','page-skills','page-simulation','page-career','page-teameval','page-evaloverview'];
     if(activePage && mgmtPages.includes(activePage.id)) {
       showPage('myprofile', document.getElementById('nav-myprofile'));
     }
   } else {
     mgmtNav.style.display='block';
+    if(execNav) execNav.style.display = role==='executive' ? 'block' : 'none';
   }
   // re-render open profile if any
   const wrap = document.getElementById('emp-detail-wrap');
@@ -845,12 +978,15 @@ function showPage(name, el) {
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   if(el) el.classList.add('active');
-  if(name==='myprofile')   renderMyProfile();
-  if(name==='dashboard')   renderDashboard();
-  if(name==='employees')   { renderEmpList(); }
-  if(name==='skills')      renderSkillMatrix();
-  if(name==='simulation')  renderSim();
-  if(name==='career')      renderCareerPage();
+  if(name==='myprofile')    renderMyProfile();
+  if(name==='dashboard')    renderDashboard();
+  if(name==='employees')    { renderEmpList(); }
+  if(name==='skills')       renderSkillMatrix();
+  if(name==='simulation')   renderSim();
+  if(name==='career')       renderCareerPage();
+  if(name==='myeval')       renderMyEval();
+  if(name==='teameval')     renderTeamEval();
+  if(name==='evaloverview') renderEvalOverview();
 }
 
 // ================================================================
@@ -1305,6 +1441,250 @@ function selectCareerEmp(id) {
           </div>
         </div>`:''}
     </div>`;
+}
+
+// ================================================================
+// EVALUATION
+// ================================================================
+let teamEvalSelId = null;
+
+function renderMyEval() {
+  const e = employees[0];
+  const eval_ = currentEval[0];
+  const hist = evalHistory[0] || [];
+
+  const scoreButtons = (key, field) => {
+    const cur = eval_[key][field];
+    return [1,2,3,4,5].map(n=>`
+      <button class="score-btn ${cur===n?'sel':''}" onclick="setScore(0,'${key}','${field}',${n})">${n}</button>
+    `).join('');
+  };
+
+  const histHtml = hist.length ? hist.map(h=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px">
+      <span style="min-width:100px;font-weight:700;color:var(--sub)">${h.period}</span>
+      <span class="badge badge-blue">合計 ${h.total}点</span>
+      <span style="font-size:11px;color:var(--sub)">${Object.entries(h.scores).map(([k,v])=>`${evalItems.find(i=>i.key===k)?.label||k}:${v}`).join(' / ')}</span>
+    </div>`).join('')
+    : '<p style="font-size:12px;color:var(--sub)">評価履歴なし</p>';
+
+  document.getElementById('myeval-content').innerHTML = `
+    <div class="eval-period-badge">📅 ${evalPeriod} — 評価シート</div>
+
+    ${evalItems.map(item=>`
+    <div class="eval-item">
+      <div class="eval-item-header">
+        <div class="eval-item-title">${item.icon} ${item.label}<span style="font-size:11px;font-weight:400;color:var(--sub)">${item.desc}</span></div>
+        <div class="eval-score-badge" id="badge-${item.key}">
+          ${eval_[item.key].selfScore ? `自己評価: ${eval_[item.key].selfScore}` : '未入力'}
+        </div>
+      </div>
+
+      <div class="eval-section">
+        <div class="eval-label">🎯 目標（上半期初めに設定）</div>
+        <textarea class="eval-textarea" rows="3" placeholder="目標を入力..." id="goal-${item.key}" onchange="updateEvalField(0,'${item.key}','goal',this.value)">${eval_[item.key].goal||''}</textarea>
+      </div>
+
+      <div class="eval-section">
+        <div class="eval-label">📝 自己評価コメント</div>
+        <textarea class="eval-textarea" rows="3" placeholder="成果・取り組みを振り返って記入..." id="self-${item.key}" onchange="updateEvalField(0,'${item.key}','selfComment',this.value)">${eval_[item.key].selfComment||''}</textarea>
+        <div class="eval-score-row">
+          <span style="font-size:12px;font-weight:700;color:var(--sub)">自己評価スコア：</span>
+          ${scoreButtons(item.key,'selfScore')}
+          <span style="font-size:11px;color:var(--sub);margin-left:4px">（1:未達 〜 5:大幅超過）</span>
+        </div>
+      </div>
+
+      ${canView('mgr_eval') ? `
+      <div class="mgr-eval-box">
+        <div class="mgr-eval-label">🏅 上長評価（マネージャー記入欄）</div>
+        <textarea class="eval-textarea" rows="2" placeholder="上長からのコメントを記入..." id="mgr-${item.key}" onchange="updateEvalField(0,'${item.key}','mgrComment',this.value)">${eval_[item.key].mgrComment||''}</textarea>
+        <div class="eval-score-row">
+          <span style="font-size:12px;font-weight:700;color:var(--sub)">上長スコア：</span>
+          ${[1,2,3,4,5].map(n=>`<button class="score-btn ${eval_[item.key].mgrScore===n?'sel':''}" onclick="setScore(0,'${item.key}','mgrScore',${n})">${n}</button>`).join('')}
+        </div>
+      </div>` : ''}
+    </div>`).join('')}
+
+    <!-- 評価履歴 -->
+    <div class="card" style="margin-top:6px">
+      <div class="card-title"><span>📊 過去の評価履歴</span></div>
+      ${histHtml}
+    </div>
+  `;
+}
+
+function setScore(empId, key, field, val) {
+  currentEval[empId][key][field] = val;
+  // Re-render relevant page
+  if(empId===0) renderMyEval();
+  else {
+    const detail = document.getElementById('team-eval-detail');
+    if(detail && teamEvalSelId===empId) renderTeamEvalDetail(empId);
+  }
+}
+function updateEvalField(empId, key, field, val) {
+  currentEval[empId][key][field] = val;
+}
+function saveMyEval() {
+  alert('✅ 評価シートを保存しました（デモ）\n実際の運用では自動保存される予定です。');
+}
+
+// ── Team Eval
+function renderTeamEval() {
+  document.getElementById('team-eval-list').innerHTML = employees.map(e=>{
+    const ev = currentEval[e.id];
+    const filled = evalItems.filter(i=>ev[i.key].selfScore).length;
+    const status = filled===3 ? 'done' : filled>0 ? 'progress' : 'pending';
+    const statusLabel = filled===3 ? '自己評価済' : filled>0 ? `${filled}/3 入力中` : '未入力';
+    const statusClass = filled===3 ? 'status-done' : filled>0 ? 'status-progress' : 'status-pending';
+    const mgrFilled = evalItems.filter(i=>ev[i.key].mgrScore).length;
+    return `<div class="team-eval-row ${teamEvalSelId===e.id?'sel':''}" onclick="selectTeamEvalEmp(${e.id})">
+      <div class="emp-av" style="background:${e.color};color:${e.tc}">${e.initial}</div>
+      <div style="flex:1">
+        <div class="emp-name-txt">${e.name}</div>
+        <div class="emp-role-txt">${e.dept}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        <span class="team-eval-status ${statusClass}">${statusLabel}</span>
+        ${mgrFilled>0?`<span style="font-size:9px;color:var(--green);font-weight:700">上長評価: ${mgrFilled}/3</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectTeamEvalEmp(id) {
+  teamEvalSelId = id;
+  renderTeamEval();
+  renderTeamEvalDetail(id);
+}
+
+function renderTeamEvalDetail(id) {
+  const e = employees.find(x=>x.id===id);
+  const ev = currentEval[id];
+
+  const html = `
+    <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border:none;padding:14px 18px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:50%;background:${e.color};color:${e.tc};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800">${e.initial}</div>
+        <div>
+          <div style="font-size:16px;font-weight:800">${e.name}</div>
+          <div style="font-size:12px;opacity:.75">${e.dept} ／ ${e.role}</div>
+        </div>
+        <div style="margin-left:auto"><span class="eval-period-badge" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3);margin-bottom:0">${evalPeriod}</span></div>
+      </div>
+    </div>
+
+    ${evalItems.map(item=>`
+    <div class="eval-item">
+      <div class="eval-item-header">
+        <div class="eval-item-title">${item.icon} ${item.label}</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${ev[item.key].selfScore?`<span class="badge badge-blue">自己: ${ev[item.key].selfScore}</span>`:'<span class="badge badge-gray">自己: 未</span>'}
+          ${ev[item.key].mgrScore?`<span class="badge badge-green">上長: ${ev[item.key].mgrScore}</span>`:'<span class="badge badge-gray">上長: 未</span>'}
+        </div>
+      </div>
+
+      <div class="eval-section">
+        <div class="eval-label">🎯 目標</div>
+        <textarea class="eval-textarea" rows="2" readonly>${ev[item.key].goal||'（目標未入力）'}</textarea>
+      </div>
+
+      <div class="eval-section">
+        <div class="eval-label">📝 本人の自己評価コメント</div>
+        <textarea class="eval-textarea" rows="2" readonly>${ev[item.key].selfComment||'（未記入）'}</textarea>
+      </div>
+
+      <div class="mgr-eval-box">
+        <div class="mgr-eval-label">🏅 上長評価（あなたが記入）</div>
+        <textarea class="eval-textarea" rows="2" placeholder="上長評価コメントを記入..." onchange="updateEvalField(${id},'${item.key}','mgrComment',this.value)">${ev[item.key].mgrComment||''}</textarea>
+        <div class="eval-score-row">
+          <span style="font-size:12px;font-weight:700;color:var(--sub)">上長スコア：</span>
+          ${[1,2,3,4,5].map(n=>`<button class="score-btn ${ev[item.key].mgrScore===n?'sel':''}" onclick="setScore(${id},'${item.key}','mgrScore',${n})">${n}</button>`).join('')}
+        </div>
+      </div>
+    </div>`).join('')}
+
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-primary" onclick="alert('✅ 上長評価を保存しました（デモ）')">💾 上長評価を保存</button>
+      <button class="btn btn-ghost" onclick="alert('📧 本人への通知は実装予定')">📧 本人に通知</button>
+    </div>
+  `;
+  document.getElementById('team-eval-detail').innerHTML = html;
+}
+
+// ── Eval Overview (Executive)
+function renderEvalOverview() {
+  const scoreColor = s => s>=4?'var(--green)':s>=3?'var(--warn)':'var(--danger)';
+  const avgScore = (empId) => {
+    const ev = currentEval[empId];
+    const scores = evalItems.map(i=>ev[i.key].mgrScore||ev[i.key].selfScore||0).filter(s=>s>0);
+    return scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : '—';
+  };
+
+  const hist21 = (empId) => {
+    const h = (evalHistory[empId]||[]).find(x=>x.period==='21期下半期');
+    return h ? h.total : '—';
+  };
+
+  document.getElementById('evaloverview-content').innerHTML = `
+    <div class="eval-period-badge">📅 ${evalPeriod} — 全社評価サマリー</div>
+
+    <div class="g4" style="margin-bottom:20px">
+      ${[
+        {v:employees.length, l:'評価対象者', c:'var(--brand)'},
+        {v:employees.filter(e=>evalItems.every(i=>currentEval[e.id][i.key].selfScore)).length, l:'自己評価完了', c:'var(--green)'},
+        {v:employees.filter(e=>evalItems.some(i=>currentEval[e.id][i.key].mgrScore)).length, l:'上長評価入力中', c:'var(--warn)'},
+        {v:employees.filter(e=>!evalItems.some(i=>currentEval[e.id][i.key].selfScore||currentEval[e.id][i.key].goal)).length, l:'未着手', c:'var(--danger)'},
+      ].map(s=>`<div class="stat-card c-brand" style="border-left-color:${s.c}">
+        <div class="stat-val" style="color:${s.c}">${s.v}</div>
+        <div class="stat-lbl">${s.l}</div>
+      </div>`).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>📋 全社員 評価一覧</span><span class="badge badge-gray">${evalPeriod}</span></div>
+      <table>
+        <thead><tr>
+          <th>社員</th><th>部門</th>
+          ${evalItems.map(i=>`<th>${i.label}</th>`).join('')}
+          <th>平均スコア</th><th>前期合計</th><th>ステータス</th>
+        </tr></thead>
+        <tbody>
+          ${employees.map(e=>{
+            const ev = currentEval[e.id];
+            const avg = avgScore(e.id);
+            const prev = hist21(e.id);
+            const selfDone = evalItems.every(i=>ev[i.key].selfScore);
+            const mgrDone = evalItems.every(i=>ev[i.key].mgrScore);
+            return `<tr>
+              <td><div style="display:flex;align-items:center;gap:7px">
+                <div style="width:28px;height:28px;border-radius:50%;background:${e.color};color:${e.tc};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800">${e.initial}</div>
+                <div><div style="font-size:12px;font-weight:700">${e.name}</div><div style="font-size:10px;color:var(--sub)">${e.role}</div></div>
+              </div></td>
+              <td><span class="badge badge-gray">${e.dept}</span></td>
+              ${evalItems.map(i=>{
+                const s = ev[i.key].mgrScore||ev[i.key].selfScore;
+                return `<td style="text-align:center">${s?`<span style="font-size:14px;font-weight:900;color:${scoreColor(s)}">${s}</span>`:'<span style="color:var(--border)">—</span>'}</td>`;
+              }).join('')}
+              <td style="text-align:center"><span style="font-size:14px;font-weight:900;color:${avg!=='—'?scoreColor(parseFloat(avg)):'var(--sub)'}">${avg}</span></td>
+              <td style="text-align:center">${prev!=='—'?`<span class="badge badge-blue">${prev}点</span>`:'<span style="color:var(--sub)">—</span>'}</td>
+              <td>${mgrDone?'<span class="badge badge-green">完了</span>':selfDone?'<span class="badge badge-orange">上長評価待</span>':'<span class="badge badge-gray">入力中</span>'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-title"><span>✏️ 経営陣コメント（最終調整）</span></div>
+      <textarea class="eval-textarea" rows="4" placeholder="全社員の評価調整コメントを記入...（経営陣のみ閲覧可）"></textarea>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="alert('✅ 経営陣コメントを保存しました（デモ）')">💾 保存</button>
+        <button class="btn btn-ghost" onclick="alert('📊 評価集計レポートは実装予定')">📊 集計レポートを出力</button>
+      </div>
+    </div>
+  `;
 }
 
 // ================================================================
