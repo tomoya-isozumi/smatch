@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smatch — スマレジ タレントマネジメント</title>
+<style>
+:root {
+  --navy:   #111827;
+  --navy2:  #1e2a45;
+  --brand:  #1a56db;
+  --brand-l:#ebf2ff;
+  --brand-m:#93b4f5;
+  --orange: #f97316;
+  --orange-l:#fff7ed;
+  --green:  #059669;
+  --teal:   #0d9488;
+  --purple: #7c3aed;
+  --warn:   #d97706;
+  --danger: #dc2626;
+  --bg:     #f8f9fc;
+  --card:   #ffffff;
+  --text:   #111827;
+  --sub:    #6b7280;
+  --border: #e5e7eb;
+  --radius: 12px;
+  --sidebar:220px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Sans','Yu Gothic UI','Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar);background:var(--navy);color:#fff;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:200;overflow-y:auto}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo-text{font-size:18px;font-weight:800;letter-spacing:-.3px}
+.sb-logo-text .o{color:var(--orange)}
+.sb-logo-sub{font-size:10px;color:rgba(255,255,255,.5);margin-top:3px}
+.sb-nav{flex:1;padding:12px 0}
+.sb-section{font-size:9px;font-weight:700;opacity:.45;padding:14px 20px 4px;text-transform:uppercase;letter-spacing:1.2px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;transition:background .15s;font-size:13px;opacity:.75;border-left:3px solid transparent}
+.sb-item:hover{background:rgba(255,255,255,.08);opacity:1}
+.sb-item.active{background:rgba(255,255,255,.12);opacity:1;font-weight:700;border-left-color:var(--orange)}
+.sb-icon{font-size:14px;width:18px;text-align:center}
+.sb-foot{padding:14px 20px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;opacity:.4}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 24px;height:58px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:16px;font-weight:800}
+.topbar-sub{font-size:11px;color:var(--sub);margin-top:2px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.search-box{display:flex;align-items:center;gap:6px;background:var(--bg);border:1.5px solid var(--border);border-radius:999px;padding:7px 14px;font-size:13px}
+.search-box input{border:none;background:transparent;outline:none;font-size:13px;width:180px}
+.avatar-sm{width:32px;height:32px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;cursor:pointer;flex-shrink:0}
+
+/* ── ROLE BADGE ── */
+.role-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid}
+.role-general{background:#f3f4f6;color:var(--sub);border-color:var(--border)}
+.role-manager{background:var(--brand-l);color:var(--brand);border-color:var(--brand-m)}
+.role-hr{background:#fdf4ff;color:#7e22ce;border-color:#d8b4fe}
+
+/* ── PAGE ── */
+.page{display:none;padding:24px 28px;animation:fadeIn .18s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── BUTTONS ── */
+.btn{padding:7px 15px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700;transition:all .15s;font-family:inherit}
+.btn-primary{background:var(--brand);color:#fff}.btn-primary:hover{background:#1446b5}
+.btn-ghost{background:none;color:var(--sub);border:1.5px solid var(--border)}.btn-ghost:hover{border-color:var(--brand);color:var(--brand)}
+.btn-success{background:var(--green);color:#fff}
+.btn-sm{padding:4px 10px;font-size:11px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:var(--radius);border:1.5px solid var(--border);padding:18px}
+.card-title{font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700}
+.badge-blue{background:var(--brand-l);color:var(--brand)}
+.badge-green{background:#d1fae5;color:#065f46}
+.badge-orange{background:#ffedd5;color:#c2410c}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-gray{background:#f3f4f6;color:var(--sub)}
+.badge-purple{background:#ede9fe;color:#5b21b6}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* ── STAT CARD ── */
+.stat-card{background:var(--card);border-radius:var(--radius);border:1.5px solid var(--border);padding:18px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%}
+.stat-card.c-brand::before{background:var(--brand)}
+.stat-card.c-orange::before{background:var(--orange)}
+.stat-card.c-green::before{background:var(--green)}
+.stat-card.c-purple::before{background:var(--purple)}
+.stat-val{font-size:30px;font-weight:900;color:var(--text);line-height:1}
+.stat-unit{font-size:14px;font-weight:500;color:var(--sub)}
+.stat-lbl{font-size:12px;color:var(--sub);margin-top:5px}
+.stat-chg{font-size:11px;margin-top:6px}
+.up{color:var(--green)}.down{color:var(--danger)}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border)}
+td{padding:10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+
+/* ── SKILL BARS ── */
+.skill-bar-wrap{display:flex;align-items:center;gap:10px;margin:5px 0}
+.skill-name-col{font-size:12px;min-width:130px}
+.skill-bar-bg{flex:1;height:7px;background:#f3f4f6;border-radius:4px;overflow:hidden}
+.skill-bar-fill{height:100%;border-radius:4px;transition:width .5s}
+.skill-lv-txt{font-size:11px;color:var(--sub);min-width:22px;text-align:right}
+
+/* ── TIMELINE ── */
+.timeline{display:flex;flex-direction:column}
+.tl-item{display:flex;gap:14px;padding-bottom:16px}
+.tl-item:last-child{padding-bottom:0}
+.tl-spine{display:flex;flex-direction:column;align-items:center;width:16px;flex-shrink:0}
+.tl-dot{width:12px;height:12px;border-radius:50%;margin-top:3px;flex-shrink:0;border:2px solid var(--border);background:#fff}
+.tl-dot.done{background:var(--brand);border-color:var(--brand)}
+.tl-dot.current{background:var(--orange);border-color:var(--orange)}
+.tl-dot.future{background:#fff;border-color:#d1d5db}
+.tl-line{flex:1;width:2px;background:var(--border);margin:3px 0}
+.tl-body{flex:1}
+.tl-period{font-size:10px;font-weight:600;color:var(--sub);margin-bottom:2px}
+.tl-co{font-size:13px;font-weight:700}
+.tl-role{font-size:12px;color:var(--sub);margin-top:1px}
+.tl-desc{font-size:12px;color:#374151;margin-top:4px;line-height:1.55}
+.tl-badge-now{display:inline-block;padding:1px 7px;background:var(--brand-l);color:var(--brand);border-radius:4px;font-size:10px;font-weight:700;margin-top:4px}
+
+/* ── EMPLOYEE CARD ── */
+.emp-list-wrap{display:flex;flex-direction:column}
+.emp-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.emp-row:last-child{border-bottom:none}
+.emp-row:hover{background:var(--brand-l)}
+.emp-row.sel{background:var(--brand-l);border-right:3px solid var(--brand)}
+.emp-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.emp-name-txt{font-size:13px;font-weight:700}
+.emp-role-txt{font-size:11px;color:var(--sub);margin-top:1px}
+
+/* ── DETAIL PANEL ── */
+.detail-panel{background:var(--card);border-radius:var(--radius);border:1.5px solid var(--border);overflow:hidden}
+.detail-header{padding:20px 22px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff}
+.detail-av-lg{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;border:3px solid rgba(255,255,255,.3);margin-bottom:10px}
+.detail-name{font-size:18px;font-weight:800}
+.detail-sub{font-size:12px;opacity:.8;margin-top:2px}
+.detail-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.detail-tag{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(255,255,255,.2);color:#fff}
+
+/* Profile tabs */
+.ptab-bar{background:#fff;border-bottom:2px solid var(--border);padding:0 22px;display:flex}
+.ptab{padding:10px 16px;font-size:12px;font-weight:500;cursor:pointer;color:var(--sub);border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap}
+.ptab.active{color:var(--brand);border-bottom-color:var(--brand);font-weight:700}
+.ptab-pane{display:none;padding:18px 22px}.ptab-pane.active{display:block}
+.lock-tab-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:#fef3c7;color:#92400e;margin-left:4px;font-weight:700}
+
+/* Sections inside profile */
+.prof-section{margin-bottom:20px}
+.sec-title{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Skills pills */
+.skill-cat{margin-bottom:12px}
+.skill-cat-name{font-size:11px;font-weight:700;color:var(--sub);margin-bottom:6px}
+.skill-pills{display:flex;flex-wrap:wrap;gap:5px}
+.sp{padding:4px 10px;border-radius:7px;font-size:11px;font-weight:600;border:1.5px solid}
+.sp.s4{background:var(--brand);color:#fff;border-color:var(--brand)}
+.sp.s3{background:var(--brand-l);color:var(--brand);border-color:var(--brand-m)}
+.sp.s2{background:#f3f4f6;color:#374151;border-color:#d1d5db}
+.sp.s1{background:#fafafa;color:var(--sub);border-color:var(--border)}
+
+/* Will */
+.will-block{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-radius:10px;padding:16px;border:1px solid #bfdbfe;margin-bottom:14px}
+.will-text{font-size:13px;color:#1e3a8a;line-height:1.7}
+.goal-row{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #dbeafe}
+.goal-row:last-child{border-bottom:none}
+.goal-icon{font-size:16px;flex-shrink:0;width:22px}
+.goal-txt{font-size:12px;color:#1e40af}
+
+/* Workstyle */
+.ws-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ws-item{background:#f9fafb;border-radius:8px;padding:12px;border:1px solid var(--border)}
+.ws-label{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;margin-bottom:4px}
+.ws-val{font-size:12px;line-height:1.5}
+
+/* Lock overlay */
+.lock-overlay{background:#f9fafb;border-radius:10px;border:1.5px dashed var(--border);padding:24px;text-align:center;color:var(--sub)}
+.lock-icon{font-size:26px;margin-bottom:8px}
+.lock-msg{font-size:13px;font-weight:700;color:#374151;margin-bottom:4px}
+.lock-sub{font-size:11px}
+
+/* Focus / Strengths */
+.focus-list{display:flex;flex-direction:column;gap:7px}
+.focus-item{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;background:#f9fafb;border-radius:8px;border:1px solid var(--border)}
+.focus-dot{width:7px;height:7px;border-radius:50%;background:var(--green);margin-top:4px;flex-shrink:0}
+.focus-txt{font-size:12px;line-height:1.5}
+.strengths{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.strength-card{background:var(--orange-l);border-radius:9px;padding:12px;border:1px solid #fed7aa}
+.strength-icon{font-size:20px;margin-bottom:5px}
+.strength-title{font-size:12px;font-weight:700;color:#c2410c;margin-bottom:3px}
+.strength-desc{font-size:11px;color:#9a3412;line-height:1.45}
+
+/* ── SIMULATION ── */
+.dept-card{border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .18s;margin-bottom:8px;background:#fff}
+.dept-card:hover{border-color:var(--brand-m);background:var(--brand-l)}
+.dept-card.sel{border-color:var(--brand);background:var(--brand-l)}
+.dept-card.tgt{border-color:var(--green);background:#ecfdf5}
+.dept-card-name{font-size:13px;font-weight:700;margin-bottom:6px}
+.member-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.mchip{display:flex;align-items:center;gap:4px;padding:3px 9px;background:#f9fafb;border:1px solid var(--border);border-radius:999px;font-size:11px;cursor:pointer;transition:all .15s}
+.mchip:hover{border-color:var(--brand-m);background:var(--brand-l)}
+.mchip.sel{border-color:var(--brand);background:var(--brand);color:#fff}
+.mchip-av{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800}
+.match-meter{display:flex;align-items:center;gap:12px;margin:8px 0}
+.match-pct{font-size:26px;font-weight:900;min-width:56px}
+.match-bar-bg{flex:1;height:11px;background:#f3f4f6;border-radius:6px;overflow:hidden}
+.match-bar-fill{height:100%;border-radius:6px;transition:width .6s}
+.verdict-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.verdict-box{border-radius:8px;padding:11px}
+.verdict-title{font-size:10px;font-weight:700;margin-bottom:7px}
+.sim-applied{background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:9px;padding:14px;margin-top:12px;display:none}
+.sim-applied.show{display:block}
+
+/* ── SKILL MATRIX ── */
+.skill-matrix{overflow-x:auto}
+.matrix-cell{text-align:center;font-size:10px;font-weight:600;padding:5px 2px;border-radius:4px}
+.level-0{color:var(--border)}
+.level-1{background:#dbeafe;color:#1d4ed8}
+.level-2{background:#bfdbfe;color:#1d4ed8}
+.level-3{background:#818cf8;color:#fff}
+.level-4{background:var(--brand);color:#fff}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:800}
+.modal-close{font-size:18px;cursor:pointer;color:var(--sub);background:none;border:none}
+.modal-body{padding:18px 22px;display:flex;flex-direction:column;gap:10px}
+.form-input{padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;outline:none;width:100%;font-family:inherit}
+.form-input:focus{border-color:var(--brand)}
+
+/* ── NOTIFICATIONS ── */
+.notif-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.notif-row:last-child{border-bottom:none}
+.notif-icon{width:30px;height:30px;border-radius:7px;background:var(--brand-l);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.notif-title{font-size:12px;font-weight:700}
+.notif-desc{font-size:11px;color:var(--sub);margin-top:1px;line-height:1.35}
+.notif-time{font-size:10px;color:var(--sub);margin-top:2px}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-text">Sma<span class="o">tch</span></div>
+    <div class="sb-logo-sub">スマレジ タレントマネジメント</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">マイページ</div>
+    <div class="sb-item active" id="nav-myprofile" onclick="showPage('myprofile',this)"><span class="sb-icon">👤</span>マイプロフィール</div>
+    <div class="sb-item" id="nav-members" onclick="showPage('employees',this)"><span class="sb-icon">🗂️</span>メンバーを探す</div>
+    <div id="mgmt-nav" style="display:none">
+      <div class="sb-section">組織管理</div>
+      <div class="sb-item" id="nav-dashboard" onclick="showPage('dashboard',this)"><span class="sb-icon">📊</span>ダッシュボード</div>
+      <div class="sb-item" id="nav-skills" onclick="showPage('skills',this)"><span class="sb-icon">🎯</span>スキル管理</div>
+      <div class="sb-item" id="nav-simulation" onclick="showPage('simulation',this)"><span class="sb-icon">🔄</span>異動シミュレーション</div>
+      <div class="sb-item" id="nav-career" onclick="showPage('career',this)"><span class="sb-icon">🚀</span>キャリアパス・育成</div>
+    </div>
+  </div>
+  <div class="sb-foot">Smatch v1.0 — CS部 五十棲 智哉</div>
+</nav>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+<!-- ROLE MODAL -->
+<div class="modal-overlay" id="role-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🔑 表示権限の切り替え</div>
+      <button class="modal-close" onclick="document.getElementById('role-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--sub)">閲覧する権限レベルを選択してください。<br>マネージャー以上・人事はPINが必要です。</p>
+      <button onclick="setRole('general')" class="btn btn-ghost" style="width:100%;text-align:left;padding:12px 14px;font-size:13px">👤 一般社員&nbsp;<span style="font-size:10px;color:var(--sub);font-weight:400">スキル・概要などを閲覧</span></button>
+      <div id="mgr-wrap">
+        <button onclick="document.getElementById('mgr-pin-wrap').style.display='flex'" class="btn btn-ghost" style="width:100%;text-align:left;padding:12px 14px;font-size:13px">🏅 マネージャー以上&nbsp;<span style="font-size:10px;color:var(--sub);font-weight:400">職歴詳細・Willを閲覧</span></button>
+        <div id="mgr-pin-wrap" style="display:none;gap:6px;margin-top:4px">
+          <input type="password" id="mgr-pin" class="form-input" placeholder="PINを入力" style="flex:1">
+          <button class="btn btn-primary" onclick="checkPin('manager')">確認</button>
+        </div>
+        <div id="mgr-pin-err" style="font-size:11px;color:var(--danger);display:none;padding:2px 4px">PINが違います</div>
+      </div>
+      <div id="hr-wrap">
+        <button onclick="document.getElementById('hr-pin-wrap').style.display='flex'" class="btn btn-ghost" style="width:100%;text-align:left;padding:12px 14px;font-size:13px">🏢 人事部&nbsp;<span style="font-size:10px;color:var(--sub);font-weight:400">全情報を閲覧</span></button>
+        <div id="hr-pin-wrap" style="display:none;gap:6px;margin-top:4px">
+          <input type="password" id="hr-pin" class="form-input" placeholder="PINを入力" style="flex:1">
+          <button class="btn btn-primary" onclick="checkPin('hr')">確認</button>
+        </div>
+        <div id="hr-pin-err" style="font-size:11px;color:var(--danger);display:none;padding:2px 4px">PINが違います</div>
+      </div>
+      <div style="background:#f9fafb;border-radius:7px;padding:9px 12px;font-size:11px;color:var(--sub)">💡 デモ用PIN：マネージャー <strong>1234</strong> ／ 人事 <strong>hr01</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MY PROFILE ── -->
+<div id="page-myprofile" class="page active">
+  <div class="topbar">
+    <div><div class="topbar-title">マイプロフィール</div><div class="topbar-sub">あなたのプロフィールを管理・公開する</div></div>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="alert('プロフィール編集機能（実装予定）')">✏️ プロフィールを編集</button>
+      <div id="role-btn3" class="role-badge role-general" onclick="openRoleModal()" title="権限切替">👤 <span id="role-label3">一般社員</span></div>
+      <div class="avatar-sm" title="マイプロフィールへ" onclick="showPage('myprofile',document.getElementById('nav-myprofile'))" style="cursor:pointer">五</div>
+    </div>
+  </div>
+  <div style="padding:20px 28px" id="myprofile-content"></div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="page-dashboard" class="page">
+  <div class="topbar">
+    <div><div class="topbar-title">ダッシュボード</div><div class="topbar-sub">組織全体のタレント概況</div></div>
+    <div class="topbar-right">
+      <div id="role-btn" class="role-badge role-general" onclick="openRoleModal()" title="権限切替">👤 <span id="role-label">一般社員</span></div>
+      <div class="avatar-sm" title="マイプロフィールへ" onclick="showPage('myprofile',document.getElementById('nav-myprofile'))" style="cursor:pointer">五</div>
+    </div>
+  </div>
+  <div style="padding:0">
+    <div class="g4" style="margin-bottom:18px" id="dash-stats"></div>
+    <div class="g2" style="margin-bottom:18px">
+      <div class="card">
+        <div class="card-title"><span>⚡ スキルギャップ上位</span><span class="badge badge-red" id="gap-badge"></span></div>
+        <div id="gap-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>🔔 アクション通知</span><span class="badge badge-blue">4件</span></div>
+        <div id="notif-list"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>📈 部門別スキル充足状況</span></div>
+      <div id="dept-circles" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;text-align:center;padding-top:6px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── EMPLOYEES ── -->
+<div id="page-employees" class="page">
+  <div class="topbar">
+    <div><div class="topbar-title">メンバーを探す</div><div class="topbar-sub">社内の人を調べる・Slackで見かけた名前を検索する</div></div>
+    <div class="topbar-right">
+      <div class="search-box">🔍<input type="text" id="emp-search" placeholder="名前・スキル・部門..." oninput="filterEmps()"></div>
+      <div id="role-btn2" class="role-badge role-general" onclick="openRoleModal()" title="権限切替">👤 <span id="role-label2">一般社員</span></div>
+      <div class="avatar-sm" title="マイプロフィールへ" onclick="showPage('myprofile',document.getElementById('nav-myprofile'))" style="cursor:pointer">五</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;padding:20px 28px">
+    <div class="card" style="padding:0;overflow:hidden;align-self:start">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;font-weight:700">社員一覧 <span class="badge badge-gray" id="emp-count"></span></span>
+        <select id="dept-filter" onchange="filterEmps()" style="font-size:11px;border:1px solid var(--border);border-radius:5px;padding:2px 6px">
+          <option value="">全部門</option>
+          <option>エンジニア</option><option>セールス</option><option>CS</option><option>コーポレート</option><option>クリエイティブ</option>
+        </select>
+      </div>
+      <div class="emp-list-wrap" id="emp-list"></div>
+    </div>
+    <div id="emp-detail-wrap">
+      <div class="card" style="text-align:center;padding:40px 24px;color:var(--sub)">
+        <div style="font-size:36px;margin-bottom:10px">👤</div>
+        <p style="font-size:13px">左の一覧から社員を選択すると<br>プロフィールが表示されます</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SKILLS ── -->
+<div id="page-skills" class="page">
+  <div class="topbar">
+    <div><div class="topbar-title">スキル管理</div><div class="topbar-sub">組織全体のスキルマップと充足分析</div></div>
+    <div class="topbar-right">
+      <select id="skill-dept-filter" onchange="renderSkillMatrix()" style="font-size:12px;border:1.5px solid var(--border);border-radius:7px;padding:5px 10px">
+        <option value="">全部門</option>
+        <option>エンジニア</option><option>セールス</option><option>CS</option><option>コーポレート</option>
+      </select>
+      <div class="avatar-sm" title="マイプロフィールへ" onclick="showPage('myprofile',document.getElementById('nav-myprofile'))" style="cursor:pointer">五</div>
+    </div>
+  </div>
+  <div style="padding:20px 28px">
+    <div class="g3" style="margin-bottom:16px" id="skill-stats"></div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">
+        <span>🗺️ スキルマトリクス</span>
+        <div style="display:flex;gap:8px;align-items:center;font-size:10px;color:var(--sub)">
+          <span style="display:inline-flex;align-items:center;gap:3px"><span style="width:11px;height:11px;background:#dbeafe;border-radius:2px;display:inline-block"></span>Lv1</span>
+          <span style="display:inline-flex;align-items:center;gap:3px"><span style="width:11px;height:11px;background:#bfdbfe;border-radius:2px;display:inline-block"></span>Lv2</span>
+          <span style="display:inline-flex;align-items:center;gap:3px"><span style="width:11px;height:11px;background:#818cf8;border-radius:2px;display:inline-block"></span>Lv3</span>
+          <span style="display:inline-flex;align-items:center;gap:3px"><span style="width:11px;height:11px;background:var(--brand);border-radius:2px;display:inline-block"></span>Lv4</span>
+        </div>
+      </div>
+      <div class="skill-matrix"><table id="skill-matrix-table"><thead id="skill-matrix-head"></thead><tbody id="skill-matrix-body"></tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>📉 スキル習得状況サマリー</span></div>
+      <div id="skill-summary"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SIMULATION ── -->
+<div id="page-simulation" class="page">
+  <div class="topbar">
+    <div><div class="topbar-title">異動シミュレーション</div><div class="topbar-sub">スキルマッチングによる最適配置を検討</div></div>
+    <div class="topbar-right"><div class="avatar-sm" title="マイプロフィールへ" onclick="showPage('myprofile',document.getElementById('nav-myprofile'))" style="cursor:pointer">五</div></div>
+  </div>
+  <div style="padding:20px 28px">
+    <div class="g2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-title"><span>Step 1｜異動元の部門・社員を選択</span></div>
+        <div id="sim-src"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>Step 2｜異動先の部門を選択</span></div>
+        <div id="sim-dst"></div>
+      </div>
+    </div>
+    <div class="card" id="sim-analysis" style="display:none;margin-bottom:16px">
+      <div class="card-title"><span>📊 Step 3｜マッチング分析</span></div>
+      <div id="sim-result"></div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-primary" onclick="applySimulation()">✅ この異動を確定する</button>
+        <button class="btn btn-ghost" onclick="resetSimulation()">🔄 リセット</button>
+      </div>
+      <div class="sim-applied" id="sim-applied"><strong>✅ 異動が確定されました！</strong><p style="font-size:12px;margin-top:5px;color:var(--sub)">人事システムへの登録・本人への通知を行ってください。</p></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>💡 AI異動推薦</span></div>
+      <table><thead><tr><th>社員</th><th>現在部門</th><th>推薦先</th><th>マッチ度</th><th>理由</th><th>アクション</th></tr></thead>
+      <tbody id="ai-reco"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ── CAREER ── -->
+<div id="page-career" class="page">
+  <div class="topbar">
+    <div><div class="topbar-title">キャリアパス・育成</div><div class="topbar-sub">社員の成長ロードマップと育成プログラム管理</div></div>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="alert('育成計画の追加フォームを開きます')">＋ 育成計画を追加</button>
+      <div class="avatar-sm" title="マイプロフィールへ" onclick="showPage('myprofile',document.getElementById('nav-myprofile'))" style="cursor:pointer">五</div>
+    </div>
+  </div>
+  <div style="padding:20px 28px">
+    <div style="display:grid;grid-template-columns:260px 1fr;gap:16px;margin-bottom:16px">
+      <div class="card" style="padding:0;overflow:hidden;align-self:start">
+        <div style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700">育成対象者</div>
+        <div class="emp-list-wrap" id="career-list"></div>
+      </div>
+      <div id="career-detail-wrap">
+        <div class="card" style="text-align:center;padding:40px 24px;color:var(--sub)">
+          <div style="font-size:36px;margin-bottom:10px">🚀</div>
+          <p style="font-size:13px">左のリストから社員を選択すると<br>キャリアパスが表示されます</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>📋 全育成計画一覧</span></div>
+      <table><thead><tr><th>社員</th><th>育成テーマ</th><th>期間</th><th>進捗</th><th>ステータス</th><th>担当メンター</th></tr></thead>
+      <tbody id="training-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /.main -->
+
+<script>
+// ================================================================
+// DATA — Smatch実社員
+// ================================================================
+const employees = [
+{
+  id:0, name:'五十棲 智哉', kana:'いそずみ ともや', initial:'五',
+  color:'#dcfce7', tc:'#166534', dept:'CS', role:'カスタマーサクセス（エクスパンション）', loc:'大阪', years:3, joinYear:2023,
+  summary:'法人営業・人材育成・店舗経営と多彩なキャリアを経てスマレジへ。営業支援時代にスキルマップ作成・育成体制構築を主導。「仕組みで組織を強くする」が一貫したテーマ。',
+  quote:'人と組織の間にある"見えないもの"を見えるようにするのが好きです。',
+  intro:{
+    history:['1社目：通信業界 / 法人営業','2社目：人材・広告業界 / 法人営業 → チームリーダー → 代理店渉外','3社目：小売業 / 店長（新店舗立ち上げ）','4社目：スマレジ（現在）'],
+    text:'営業・育成・店舗経営と、現場で手を動かすキャリアを歩んできました。どの仕事でも一貫していたのは「仕組みで人を動かす」こと。スマレジでは営業→営業支援→CSと幅広く経験し、今はAI×組織づくりに一番テンションが上がっています。'
+  },
+  focus:['顧客LTV最大化・NRR向上に向けたアップセル／クロスセル提案','タレントマネジメントシステムのプロトタイプ開発・提案（本プロジェクト）','営業支援時代に構築した育成体制の継続改善・横展開'],
+  strengths:[
+    {icon:'🏗️',title:'仕組みづくり',desc:'教育プログラム・スキルマップ・営業マニュアルなど、個人の感覚を組織の仕組みに変換するのが得意'},
+    {icon:'🎓',title:'育成・イネーブルメント',desc:'PSSを基盤に、中途入社者の短期立ち上がりを支援する体制を設計・実施'},
+    {icon:'🔍',title:'課題の言語化',desc:'現場の「なんとなく困っている」を構造化し、解決策に落とし込む'},
+  ],
+  skills:{
+    '営業・CS':[['法人営業',4],['カスタマーサクセス',3],['新規開拓',4],['ヒアリング・課題抽出',4]],
+    '営業イネーブルメント':[['育成プログラム設計',4],['スキルマップ作成',4],['営業資料・マニュアル作成',4],['研修設計・講師',4]],
+    'マネジメント・採用':[['チームリード',3],['採用（企画〜実施）',4],['KPI設計',3]],
+    'その他':[['SNS運用',3],['AI活用（業務設計）',3]],
+  },
+  career:[
+    {company:'DXHUB株式会社',role:'法人営業 ／ 新卒採用責任者',period:'2012–2014',isSmaregi:false,desc:'通信製品の飛び込み営業からキャリアスタート。入社初年度に新卒社員トップセールスを達成。1年目から新卒採用責任者を兼務。'},
+    {company:'エン・ジャパン株式会社',role:'法人営業 → チームリーダー → 代理店渉外',period:'2014–2020',isSmaregi:false,desc:'求人広告の法人営業としてMVP個人賞を複数回受賞。PSSを習得し、営業スキルの体系化と再現性ある指導の基礎を固めた。'},
+    {company:'株式会社風街道具店',role:'店長（新店舗立ち上げ〜運営）',period:'2020–2023',isSmaregi:false,desc:'アウトドア用品店の新店舗を一人で立ち上げ。Instagram広告費0円でフォロワー目標150%達成。'},
+    {company:'株式会社スマレジ',role:'フィールドセールス → 営業支援 → CS（エクスパンション）',period:'2023–現在',isSmaregi:true,desc:'入社初年度に通期ARR目標達成。営業支援では社内スキルマップ作成・育成プログラムを設計実施。現在はCSエクスパンションにてNRR向上に従事。'},
+  ],
+  will:{text:'組織の「人が見える仕組み」を作ることに一番やりがいを感じています。このタレントマネジメントシステムを実際の社内ツールとして展開し、社員一人ひとりの経験・強み・Willが組織戦略に接続される仕組みをスマレジ全社に広げていきたい。',
+    goals:[{icon:'🗺️',text:'このタレントマネジメントシステムを実際の社内ツールとして展開する'},{icon:'🏢',text:'組織開発・人材育成を担う機能を会社として確立させたい'},{icon:'🚀',text:'AI活用を通じた業務設計力を磨き、仕組みづくり×テクノロジーで組織課題を解決できる人材になる'}]},
+  workstyle:{'連絡方法':'Slackが基本。複雑な話は口頭かビデオ通話で整理したい','ミーティング':'目的と論点が明確なら大歓迎','フィードバック':'率直に言ってもらえる方が嬉しい。改善点は具体的に','困ること':'背景が共有されない依頼。「なぜ必要か」があると動き方が変わる','趣味・人柄':'キャンプ・アウトドア（前職で店長だったので本格派）。子育て中。'},
+  certifications:['PSS（Professional Selling Skills）習得・活用'],
+  tags:['スキルマップ構築経験','育成体制設計','営業イネーブルメント'],
+  training:{theme:'タレントマネジメント実践',progress:65,deadline:'2026/06/30',mentor:'人事部長'},
+  careerPath:[{title:'フィールドセールス',status:'done'},{title:'CS（エクスパンション）',status:'current'},{title:'CS企画・組織開発',status:'future'},{title:'HRディレクター',status:'future'}],
+},
+{
+  id:1, name:'田中 一郎', kana:'たなか いちろう', initial:'田',
+  color:'#dbeafe', tc:'#1d4ed8', dept:'エンジニア', role:'シニアバックエンドエンジニア', loc:'大阪', years:6, joinYear:2020,
+  summary:'SaaS企業でバックエンド開発を7年。スマレジではAPIプラットフォームの設計をリード。Go言語が好き。',
+  quote:'「速く動く」より「正しく動く」を大事にしています。コードレビューは愛情表現です。',
+  focus:['POSシステムの決済API v3リファクタリング（〜8月）','チーム内でのコードレビュー文化づくり','Go言語勉強会の月1開催'],
+  strengths:[
+    {icon:'🏗️',title:'システム設計',desc:'複雑な要件を整理してシンプルなアーキテクチャに落とし込む力'},
+    {icon:'🔍',title:'デバッグ力',desc:'原因を丁寧に追う。「なんとなく直った」は嫌い'},
+    {icon:'👥',title:'技術共有',desc:'チームの技術水準を底上げすることに喜びを感じる'},
+  ],
+  skills:{
+    'バックエンド開発':[['Go',4],['PHP',4],['Python',3],['Ruby',2]],
+    'インフラ / クラウド':[['AWS',4],['Docker',4],['Kubernetes',3],['Terraform',2]],
+    'データベース':[['MySQL',4],['PostgreSQL',3],['Redis',3]],
+    'その他':[['APIデザイン',4],['チームリード',3],['技術採用',2]],
+  },
+  career:[
+    {company:'株式会社リクルート（関連会社）',role:'Webエンジニア',period:'2013–2017',isSmaregi:false,desc:'求人サービスの検索エンジン開発担当。月間1億PVのシステムを扱い、スケーリングの難しさを身体で学んだ。'},
+    {company:'スタートアップ（決済SaaS）',role:'バックエンドエンジニア',period:'2017–2020',isSmaregi:false,desc:'シリーズAのスタートアップ。決済処理・セキュリティ要件が厳しい環境でAPI設計を担当。'},
+    {company:'株式会社スマレジ',role:'バックエンドエンジニア → シニア',period:'2020–現在',isSmaregi:true,desc:'POS連携APIの設計・開発・保守をリード。2022年よりシニアに昇格し、チームの技術的意思決定に関与。'},
+  ],
+  will:{text:'3年以内にエンジニアリングマネージャーとして、プロダクトの品質と速度の両立を追求したい。技術選定・採用・チームビルディングに本格的に取り組みたい。',
+    goals:[{icon:'🎯',text:'2025年内にEM候補としての動きを始める'},{icon:'📚',text:'マネジメント書籍を月1冊読む習慣継続中'},{icon:'🌏',text:'将来的に技術顧問や社外登壇もやってみたい'}]},
+  workstyle:{'連絡方法':'Slackのリプライ優先。急ぎはメンション。電話・口頭は苦手','ミーティング':'アジェンダがあれば大歓迎','フィードバック':'直接言ってもらえると助かる','困ること':'コンテキストなしの「これよろしく」依頼','趣味・人柄':'ボードゲーム好き。猫2匹飼い。コーヒーにうるさい'},
+  certifications:['応用情報技術者','AWS Solutions Architect Associate'],
+  tags:['APIエキスパート','Go好き','コードレビュー'],
+  training:{theme:'エンジニアリングマネジメント基礎',progress:40,deadline:'2026/09/30',mentor:'田中GM'},
+  careerPath:[{title:'バックエンドエンジニア',status:'done'},{title:'シニアエンジニア',status:'current'},{title:'エンジニアリングMGR',status:'future'},{title:'VP of Engineering',status:'future'}],
+},
+{
+  id:2, name:'佐藤 花子', kana:'さとう はなこ', initial:'佐',
+  color:'#fce7f3', tc:'#9d174d', dept:'セールス', role:'エンタープライズセールス', loc:'東京', years:3, joinYear:2023,
+  summary:'飲食・小売業界で10年以上の法人営業経験。現場目線でPOS提案ができるのが強み。複数拠点の大規模展開を得意とする。',
+  quote:'お客様の「困った」を聞くのが仕事の9割。残り1割で最適解を提案する。',
+  focus:['小売チェーン100店舗超のスマレジ展開プロジェクト','東京エリアの新規開拓：月2件クローズ目標','飲食業界向け提案テンプレートの整備'],
+  strengths:[
+    {icon:'🤝',title:'現場理解',desc:'POSの使い手である飲食・小売の現場経験があり、導入後の運用まで見通せる'},
+    {icon:'🗣️',title:'ヒアリング力',desc:'「何が欲しいか」より「何に困っているか」を引き出す'},
+    {icon:'📋',title:'大規模展開',desc:'多店舗展開案件のプロジェクト管理。関係者が多くても整理できる'},
+  ],
+  skills:{
+    '営業スキル':[['法人営業',4],['大規模提案',4],['ヒアリング',5],['クロージング',3]],
+    '業界知識':[['小売業',4],['飲食業',4],['流通・SCM',3]],
+    'ツール':[['Salesforce',4],['Excel',4],['PowerPoint',4]],
+    'その他':[['プロジェクト管理',3],['英語（業務レベル）',2]],
+  },
+  career:[
+    {company:'株式会社すかいらーくHD',role:'店舗マネージャー → 本社スタッフ',period:'2012–2018',isSmaregi:false,desc:'店長として20名のチームを管理。その後本社でPOSシステム導入・店舗オペレーション改善を担当。'},
+    {company:'外資系POS/ITソリューション企業',role:'営業担当',period:'2018–2023',isSmaregi:false,desc:'飲食・小売チェーン向けのPOS提案。大手チェーンの全国一斉導入（200店舗）を1人でPM。'},
+    {company:'株式会社スマレジ',role:'エンタープライズセールス',period:'2023–現在',isSmaregi:true,desc:'前職の業界経験を活かし、大手小売・飲食チェーンへのアプローチを担当。入社初年度に年間目標120%達成。'},
+  ],
+  will:{text:'スマレジが「飲食・小売業界のデファクトスタンダード」になる瞬間を最前線で作りたい。中長期的にはセールスマネージャーとして、業界特化型チームを立ち上げたい。',
+    goals:[{icon:'🎯',text:'年内にエンタープライズ案件を3件以上クローズ'},{icon:'👩‍💼',text:'飲食・小売業界の専門チームのリードに挑戦したい'},{icon:'📊',text:'データを使った提案力をもっと上げたい'}]},
+  workstyle:{'連絡方法':'Slackかテキストが基本。急ぎなら電話も全然OK','ミーティング':'目的が明確なら喜んで','フィードバック':'はっきり言ってくれると助かる','困ること':'前置きが長い社内資料。結論から書いてほしい','趣味・人柄':'ランニング（ハーフマラソン参加）。食べログの感想を書くのが趣味'},
+  certifications:['販売士2級','TOEIC 730'],
+  tags:['大規模展開','飲食小売専門','達成率120%'],
+  training:{theme:'データドリブン営業',progress:78,deadline:'2026/05/31',mentor:'佐藤MGR'},
+  careerPath:[{title:'飲食・小売営業',status:'done'},{title:'エンタープライズセールス',status:'current'},{title:'セールスマネージャー',status:'future'},{title:'事業部長',status:'future'}],
+},
+{
+  id:3, name:'鈴木 正樹', kana:'すずき まさき', initial:'鈴',
+  color:'#d1fae5', tc:'#065f46', dept:'エンジニア', role:'インフラエンジニア（主任）', loc:'大阪', years:5, joinYear:2021,
+  summary:'前職でのAWS移行経験を活かし、スマレジのクラウドインフラを担当。ゼロトラスト・セキュリティ強化に注力中。',
+  quote:'止まらないシステムが最高のプロダクト。地味だけど、基盤が全てを支える。',
+  focus:['全社ゼロトラスト化プロジェクト（2026年Q3完了目標）','クラウドコスト最適化：月次20%削減','監視・アラート体制の高度化'],
+  strengths:[
+    {icon:'☁️',title:'クラウドアーキテクチャ',desc:'AWS全サービスに精通。コスト・可用性・セキュリティのバランスを取った設計が得意'},
+    {icon:'🔐',title:'セキュリティ設計',desc:'ゼロトラスト・ネットワーク分離・脆弱性管理まで一貫して担当'},
+    {icon:'🤖',title:'自動化',desc:'IaCとCI/CDパイプラインを組み合わせた運用自動化で属人化を排除'},
+  ],
+  skills:{
+    'インフラ':[['AWS',4],['Terraform',4],['Docker',4],['Kubernetes',3]],
+    'セキュリティ':[['ゼロトラスト',3],['脆弱性管理',3],['IAM設計',4]],
+    '監視・自動化':[['Datadog',4],['GitHub Actions',3],['Python',3]],
+    'その他':[['コスト最適化',4],['チームリード',2]],
+  },
+  career:[
+    {company:'SIer（中堅）',role:'インフラエンジニア',period:'2015–2018',isSmaregi:false,desc:'オンプレミスサーバー管理からキャリアスタート。大手金融機関のDCコスト削減プロジェクトに参画。'},
+    {company:'ITコンサルティング会社',role:'クラウドコンサルタント',period:'2018–2021',isSmaregi:false,desc:'企業のAWS移行を支援。延べ15社のクラウド移行をリード。'},
+    {company:'株式会社スマレジ',role:'インフラエンジニア → 主任',period:'2021–現在',isSmaregi:true,desc:'全社クラウドインフラの設計・運用担当。2023年より主任に。ゼロトラスト移行プロジェクトをリード中。'},
+  ],
+  will:{text:'スマレジのインフラをクラウドネイティブの模範事例にしたい。次のステップとしてはITアーキテクトとして、セキュリティ・コスト・スケーラビリティの三方良しを実現したい。',
+    goals:[{icon:'🔐',text:'ゼロトラスト化を2026年Q3に完遂する'},{icon:'📜',text:'AWS Security Specialty取得（2026年内）'},{icon:'🌐',text:'社外勉強会・カンファレンスで登壇経験を積む'}]},
+  workstyle:{'連絡方法':'Slackとメール。緊急時は電話OK','ミーティング':'週次の定例以外は非同期が好き','フィードバック':'数字と根拠があると動きやすい','困ること':'曖昧な要件のまま実装依頼が来ること','趣味・人柄':'登山・ハイキング。自炊派。コーヒー豆を自分で焙煎する'},
+  certifications:['AWS Solutions Architect Professional','情報処理安全確保支援士'],
+  tags:['クラウド基盤','ゼロトラスト','コスト最適化'],
+  training:{theme:'クラウドセキュリティ上級',progress:25,deadline:'2026/08/31',mentor:'加藤CTO'},
+  careerPath:[{title:'インフラエンジニア',status:'done'},{title:'主任（現在）',status:'current'},{title:'ITアーキテクト',status:'future'},{title:'CTO補佐',status:'future'}],
+},
+{
+  id:4, name:'高橋 美咲', kana:'たかはし みさき', initial:'高',
+  color:'#fef9c3', tc:'#854d0e', dept:'コーポレート', role:'経営企画マネージャー', loc:'大阪', years:8, joinYear:2018,
+  summary:'新卒からスマレジ一筋。企画→主任→マネージャーへ。中期経営計画の策定から新規事業推進まで担う。',
+  quote:'数字は現場から生まれる。現場を知らない経営企画は意味がない。',
+  focus:['2026年度中期経営計画のアップデート（Q3提出）','新規SaaS事業の市場調査・事業計画策定','全社OKR導入プロジェクト（PMO）'],
+  strengths:[
+    {icon:'📈',title:'戦略立案',desc:'市場データと現場の肌感覚を統合した事業計画の策定が得意'},
+    {icon:'🔗',title:'社内調整',desc:'多部門を巻き込んだプロジェクト推進。ステークホルダー管理が強み'},
+    {icon:'📊',title:'数値化・可視化',desc:'「なんとなく良い」を数字に落とし込み、意思決定を加速させる'},
+  ],
+  skills:{
+    '経営・企画':[['戦略立案',5],['事業計画',5],['予算管理',4],['OKR設計',3]],
+    '分析':[['データ分析',4],['Excel/スプレッドシート',5],['Tableau',3],['SQL',2]],
+    'マネジメント':[['プロジェクト管理',5],['チームリード',4],['採用面接',3]],
+    'コミュニケーション':[['プレゼンテーション',5],['社内調整',5],['英語（読み書き）',2]],
+  },
+  career:[
+    {company:'株式会社スマレジ',role:'経営企画担当',period:'2018–2020',isSmaregi:true,desc:'新卒入社。経営企画部門に配属。決算資料の作成・IR対応サポートなど。'},
+    {company:'株式会社スマレジ',role:'経営企画主任',period:'2020–2023',isSmaregi:true,desc:'中期経営計画の策定を主担当として初めてリード。全社OKR導入プロジェクトのPMO。'},
+    {company:'株式会社スマレジ',role:'経営企画マネージャー',period:'2023–現在',isSmaregi:true,desc:'部門統括。3名のチームをリードしながら、新規SaaS事業の推進と全社戦略策定を主導。'},
+  ],
+  will:{text:'スマレジが「POS × SaaS × データ活用」で小売・飲食業界を変革するリーディングカンパニーになる瞬間を、経営の中枢で作りたい。次のステップとして事業部長として新規事業を立ち上げたい。',
+    goals:[{icon:'🌟',text:'新規SaaS事業の事業計画を年内に取締役会承認'},{icon:'👩‍💼',text:'事業部長候補として社内外のリーダーシップ経験を積む'},{icon:'🤖',text:'AI活用を経営企画プロセスに組み込む（データドリブン意思決定）'}]},
+  workstyle:{'連絡方法':'Slack・メール両用。週次MTGで確認したいことはまとめて','ミーティング':'事前にアジェンダを共有してほしい。会議中に結論を出すことが理想','フィードバック':'ポジティブ・ネガティブ共に、具体的な行動に落とせる形で','困ること':'「とりあえず資料作って」。目的と締め切りをセットで伝えてほしい','趣味・人柄':'茶道（裏千家）。美術館巡り。子供2人のワーママ'},
+  certifications:['中小企業診断士','PMP（プロジェクトマネジメント）'],
+  tags:['次世代リーダー','役員候補','経営企画'],
+  training:{theme:'AI時代の経営戦略',progress:55,deadline:'2026/07/31',mentor:'外部コンサル'},
+  careerPath:[{title:'経営企画担当',status:'done'},{title:'経営企画マネージャー',status:'current'},{title:'新規事業部長',status:'future'},{title:'役員候補',status:'future'}],
+},
+];
+
+// ── Simulation departments
+const simDepts = [
+  {name:'エンジニア', need:['Go','PHP','Python','AWS','APIデザイン','システム設計']},
+  {name:'セールス',   need:['法人営業','ヒアリング','大規模提案','Salesforce','クロージング']},
+  {name:'CS',         need:['カスタマーサクセス','ヒアリング・課題抽出','育成プログラム設計','KPI設計']},
+  {name:'コーポレート',need:['データ分析','戦略立案','Excel/スプレッドシート','プロジェクト管理','プレゼンテーション']},
+  {name:'クリエイティブ',need:['デザイン','プレゼンテーション','ブランディング','SNS運用']},
+];
+
+// ── Access control
+let currentRole = 'general';
+const PINS = {manager:'1234', hr:'hr01'};
+
+function canView(sec) {
+  if (sec === 'career_detail') return currentRole === 'manager' || currentRole === 'hr';
+  if (sec === 'will')          return currentRole === 'manager' || currentRole === 'hr';
+  if (sec === 'hr_only')       return currentRole === 'hr';
+  return true;
+}
+function lockHtml(sec) {
+  const msgs = {career_detail:['マネージャー以上のみ閲覧可','職歴の詳細・実績情報は権限者のみ表示されます'],will:['マネージャー以上のみ閲覧可','キャリア志向・目標は権限者のみ表示されます']};
+  const [msg,sub] = msgs[sec]||['閲覧権限がありません',''];
+  return `<div class="lock-overlay"><div class="lock-icon">🔒</div><div class="lock-msg">${msg}</div><div class="lock-sub">${sub}</div><button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="openRoleModal()">権限を切り替える</button></div>`;
+}
+
+function openRoleModal() {
+  ['mgr-pin-wrap','hr-pin-wrap'].forEach(id=>{document.getElementById(id).style.display='none';});
+  ['mgr-pin','hr-pin'].forEach(id=>{document.getElementById(id).value='';});
+  ['mgr-pin-err','hr-pin-err'].forEach(id=>{document.getElementById(id).style.display='none';});
+  document.getElementById('role-modal').classList.add('open');
+}
+function checkPin(role) {
+  const pin = document.getElementById((role==='manager'?'mgr':'hr')+'-pin').value;
+  if (pin === PINS[role]) { setRole(role); document.getElementById('role-modal').classList.remove('open'); }
+  else { document.getElementById((role==='manager'?'mgr':'hr')+'-pin-err').style.display='block'; }
+}
+function setRole(role) {
+  currentRole = role;
+  document.getElementById('role-modal').classList.remove('open');
+  ['role-btn','role-btn2','role-btn3'].forEach(id=>{
+    const btn = document.getElementById(id); if(!btn)return;
+    const lbl = btn.querySelector('span');
+    btn.className = 'role-badge';
+    if(role==='general'){btn.classList.add('role-general');if(lbl)lbl.textContent='一般社員';}
+    else if(role==='manager'){btn.classList.add('role-manager');if(lbl)lbl.textContent='マネージャー以上';}
+    else{btn.classList.add('role-hr');if(lbl)lbl.textContent='人事部';}
+  });
+  // Show/hide mgmt nav
+  const mgmtNav = document.getElementById('mgmt-nav');
+  if(role==='general') {
+    mgmtNav.style.display='none';
+    // If on a management page, go back to myprofile
+    const activePage = document.querySelector('.page.active');
+    const mgmtPages = ['page-dashboard','page-skills','page-simulation','page-career'];
+    if(activePage && mgmtPages.includes(activePage.id)) {
+      showPage('myprofile', document.getElementById('nav-myprofile'));
+    }
+  } else {
+    mgmtNav.style.display='block';
+  }
+  // re-render open profile if any
+  const wrap = document.getElementById('emp-detail-wrap');
+  if(wrap && wrap.dataset.empId) showEmpDetail(parseInt(wrap.dataset.empId));
+}
+
+// ── Flat skills helper
+function flatSkills(e) {
+  const f={};
+  Object.values(e.skills||{}).flat().forEach(([s,l])=>{f[s]=l;});
+  return f;
+}
+
+// ================================================================
+// MY PROFILE
+// ================================================================
+function renderMyProfile() {
+  const e = employees[0]; // 五十棲 智哉 = ログインユーザー
+
+  const careerHtml = e.career.map((c, i) => `
+    <div class="tl-item">
+      <div class="tl-spine">
+        <div class="tl-dot ${c.isSmaregi ? 'current' : 'done'}"></div>
+        ${i < e.career.length - 1 ? '<div class="tl-line"></div>' : ''}
+      </div>
+      <div class="tl-body">
+        <div class="tl-period">${c.period}</div>
+        <div class="tl-co">${c.company}${c.isSmaregi ? '&nbsp;<span class="tl-badge-now">現職</span>' : ''}</div>
+        <div class="tl-role">${c.role}</div>
+        <div class="tl-desc">${c.desc}</div>
+      </div>
+    </div>`).join('');
+
+  const skillsHtml = Object.entries(e.skills).map(([cat, items]) => `
+    <div class="skill-cat">
+      <div class="skill-cat-name">${cat}</div>
+      <div class="skill-pills">
+        ${items.map(([s, l]) => `<span class="sp s${l}" title="Lv${l}">${s}</span>`).join('')}
+      </div>
+    </div>`).join('');
+
+  const strengthsHtml = e.strengths.map(s => `
+    <div class="strength-card">
+      <div class="strength-icon">${s.icon}</div>
+      <div class="strength-title">${s.title}</div>
+      <div class="strength-desc">${s.desc}</div>
+    </div>`).join('');
+
+  document.getElementById('myprofile-content').innerHTML = `
+    <!-- Hero -->
+    <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border:none">
+      <div style="display:flex;align-items:flex-start;gap:20px">
+        <div style="width:68px;height:68px;border-radius:50%;background:${e.color};color:${e.tc};display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;border:3px solid rgba(255,255,255,.25);flex-shrink:0">${e.initial}</div>
+        <div style="flex:1">
+          <div style="font-size:22px;font-weight:900">${e.name}</div>
+          <div style="font-size:13px;opacity:.75;margin-top:3px">${e.dept} ／ ${e.role} ／ ${e.loc} ／ 在籍${e.years}年目</div>
+          <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+            ${(e.tags||[]).map(t=>`<span style="padding:2px 9px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(255,255,255,.18);color:#fff">${t}</span>`).join('')}
+          </div>
+          <div style="margin-top:12px;font-size:13px;line-height:1.7;background:rgba(255,255,255,.07);border-radius:8px;padding:12px 14px;border-left:3px solid var(--orange);font-style:italic;opacity:.95">「${e.quote}」</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2" style="margin-bottom:0;align-items:start">
+      <!-- 左カラム -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- 今やっていること -->
+        <div class="card">
+          <div class="card-title"><span>⚡ 今やっていること</span></div>
+          <div class="focus-list">
+            ${e.focus.map(f=>`<div class="focus-item"><div class="focus-dot"></div><div class="focus-txt">${f}</div></div>`).join('')}
+          </div>
+        </div>
+
+        <!-- 自己紹介・経歴 -->
+        <div class="card">
+          <div class="card-title"><span>📋 自己紹介・経歴</span></div>
+          <div style="margin-bottom:12px">
+            ${(e.intro?.history||[]).map((h,i)=>`
+              <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+                <span style="color:var(--brand);font-weight:700;min-width:16px">${i+1}</span>
+                <span>${h}</span>
+              </div>`).join('')}
+          </div>
+          <div style="font-size:13px;line-height:1.75;color:#374151;background:#f9fafb;border-radius:8px;padding:12px;border-left:3px solid var(--brand-m)">${e.intro?.text||''}</div>
+        </div>
+
+        <!-- スキル -->
+        <div class="card">
+          <div class="card-title">
+            <span>🎯 スキル・できること</span>
+            <div style="display:flex;gap:4px;align-items:center">
+              <span class="sp s4" style="font-size:9px;padding:2px 6px">エキスパート</span>
+              <span class="sp s3" style="font-size:9px;padding:2px 6px">得意</span>
+              <span class="sp s2" style="font-size:9px;padding:2px 6px">できる</span>
+              <span class="sp s1" style="font-size:9px;padding:2px 6px">学習中</span>
+            </div>
+          </div>
+          ${skillsHtml}
+        </div>
+      </div>
+
+      <!-- 右カラム -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- 強み -->
+        <div class="card">
+          <div class="card-title"><span>💪 得意なこと・強み</span></div>
+          <div class="strengths">${strengthsHtml}</div>
+        </div>
+
+        <!-- 仕事スタイル -->
+        <div class="card">
+          <div class="card-title"><span>🤝 仕事スタイル・人柄</span></div>
+          <div class="ws-grid">
+            ${Object.entries(e.workstyle||{}).map(([k,v])=>`<div class="ws-item"><div class="ws-label">${k}</div><div class="ws-val">${v}</div></div>`).join('')}
+          </div>
+        </div>
+
+        <!-- Will -->
+        <div class="card">
+          <div class="card-title"><span>🚀 Willと今後について</span></div>
+          <div class="will-block">
+            <div class="will-text">${e.will.text}</div>
+          </div>
+          ${e.will.goals.map(g=>`<div class="goal-row"><div class="goal-icon">${g.icon}</div><div class="goal-txt">${g.text}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  if(name==='myprofile')   renderMyProfile();
+  if(name==='dashboard')   renderDashboard();
+  if(name==='employees')   { renderEmpList(); }
+  if(name==='skills')      renderSkillMatrix();
+  if(name==='simulation')  renderSim();
+  if(name==='career')      renderCareerPage();
+}
+
+// ================================================================
+// DASHBOARD
+// ================================================================
+const NOTIFS = [
+  {icon:'🎯',title:'五十棲さんの育成計画の期日が近づいています',desc:'タレントマネジメントシステム提案まで2週間。次のステップを設定してください。',time:'今日 09:30'},
+  {icon:'🔄',title:'エンジニア部門 → CS部門への異動推薦',desc:'スキルマッチ度の高い候補者が見つかりました。',time:'昨日 16:00'},
+  {icon:'⚠️',title:'セールス部門のデータ分析スキルが基準を下回っています',desc:'研修プログラムの追加を検討してください。',time:'2日前'},
+  {icon:'⭐',title:'高橋さんがハイポテンシャル認定',desc:'評価スコア上位5%に入りました。',time:'3日前'},
+];
+const DEPT_COLORS = {エンジニア:'#1a56db',セールス:'#0d9488',CS:'#f97316',コーポレート:'#7c3aed',クリエイティブ:'#059669'};
+
+function renderDashboard() {
+  // Stats
+  const depts = [...new Set(employees.map(e=>e.dept))];
+  const allSkills = employees.flatMap(e=>Object.values(e.skills||{}).flat());
+  const expertCount = allSkills.filter(([,l])=>l>=4).length;
+  document.getElementById('dash-stats').innerHTML = [
+    {val:employees.length,unit:'名',lbl:'在籍社員数（デモ）',chg:'↑ 2名（先月比）',up:true,c:'c-brand'},
+    {val:depts.length,unit:'部門',lbl:'部門数',chg:depts.join(' / '),up:true,c:'c-orange'},
+    {val:expertCount,unit:'',lbl:'エキスパートスキル総数',chg:'↑ 3件 新規認定',up:true,c:'c-green'},
+    {val:employees.filter(e=>e.training).length,unit:'件',lbl:'育成計画進行中',chg:'↑ 1件 完了間近',up:true,c:'c-purple'},
+  ].map(s=>`<div class="stat-card ${s.c}">
+    <div class="stat-val">${s.val}<span class="stat-unit">${s.unit}</span></div>
+    <div class="stat-lbl">${s.lbl}</div>
+    <div class="stat-chg ${s.up?'up':'down'}">${s.chg}</div>
+  </div>`).join('');
+
+  // Skill gaps
+  const freq={};
+  employees.forEach(e=>Object.values(e.skills||{}).flat().forEach(([s,l])=>{if(!freq[s])freq[s]=[];freq[s].push(l);}));
+  const gaps = Object.entries(freq).map(([s,lvs])=>({s,avg:lvs.reduce((a,b)=>a+b,0)/lvs.length,cnt:lvs.length}))
+    .filter(x=>x.cnt>=2).sort((a,b)=>a.avg-b.avg).slice(0,5);
+  document.getElementById('gap-badge').textContent=`要対応 ${gaps.filter(g=>g.avg<2.5).length}件`;
+  document.getElementById('gap-list').innerHTML = gaps.map(g=>{
+    const pct=Math.round(g.avg/4*100);
+    const col=pct>=70?'var(--green)':pct>=50?'var(--warn)':'var(--danger)';
+    const bc=pct>=70?'badge-green':pct>=50?'badge-orange':'badge-red';
+    return `<div style="display:grid;grid-template-columns:110px 40px 1fr 54px;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px">
+      <strong>${g.s}</strong><span style="color:var(--sub)">${g.cnt}名</span>
+      <div style="height:6px;background:#f3f4f6;border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:3px"></div></div>
+      <span class="badge ${bc}">${pct}%</span></div>`;
+  }).join('');
+
+  // Notifications
+  document.getElementById('notif-list').innerHTML = NOTIFS.map(n=>`
+    <div class="notif-row">
+      <div class="notif-icon">${n.icon}</div>
+      <div><div class="notif-title">${n.title}</div><div class="notif-desc">${n.desc}</div><div class="notif-time">${n.time}</div></div>
+    </div>`).join('');
+
+  // Dept circles
+  document.getElementById('dept-circles').innerHTML = depts.slice(0,5).map(dept=>{
+    const emps=employees.filter(e=>e.dept===dept);
+    const lvs=emps.flatMap(e=>Object.values(e.skills||{}).flat().map(([,l])=>l));
+    const avg=lvs.length?lvs.reduce((a,b)=>a+b,0)/lvs.length:0;
+    const pct=Math.round(avg/4*100);
+    const r=30,circ=2*Math.PI*r,dash=circ*pct/100;
+    const col=DEPT_COLORS[dept]||'#1a56db';
+    return `<div>
+      <div style="font-size:11px;font-weight:700;margin-bottom:6px">${dept}</div>
+      <svg width="72" height="72" viewBox="0 0 72 72">
+        <circle cx="36" cy="36" r="${r}" fill="none" stroke="#e5e7eb" stroke-width="7"/>
+        <circle cx="36" cy="36" r="${r}" fill="none" stroke="${col}" stroke-width="7"
+          stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round" transform="rotate(-90 36 36)"/>
+        <text x="36" y="40" text-anchor="middle" font-size="12" font-weight="800" fill="#111827">${pct}%</text>
+      </svg>
+      <div style="font-size:10px;color:var(--sub);margin-top:3px">${emps.length}名</div>
+    </div>`;
+  }).join('');
+}
+
+// ================================================================
+// EMPLOYEES
+// ================================================================
+let selEmpId = null;
+
+function renderEmpList(q='', dept='') {
+  const filtered = employees.filter(e=>{
+    const mq = !q || e.name.includes(q)||e.dept.includes(q)||e.role.includes(q)||(e.kana||'').includes(q)||
+      Object.values(e.skills||{}).flat().some(([s])=>s.includes(q));
+    const md = !dept || e.dept===dept;
+    return mq&&md;
+  });
+  document.getElementById('emp-count').textContent=filtered.length+'名';
+  document.getElementById('emp-list').innerHTML = filtered.map(e=>`
+    <div class="emp-row ${selEmpId===e.id?'sel':''}" onclick="showEmpDetail(${e.id})">
+      <div class="emp-av" style="background:${e.color};color:${e.tc}">${e.initial}</div>
+      <div style="flex:1"><div class="emp-name-txt">${e.name}</div><div class="emp-role-txt">${e.role}</div></div>
+      <span class="badge badge-gray">${e.dept}</span>
+    </div>`).join('');
+}
+function filterEmps() { renderEmpList(document.getElementById('emp-search').value, document.getElementById('dept-filter').value); }
+
+function showEmpDetail(id) {
+  selEmpId=id;
+  filterEmps();
+  const e=employees.find(x=>x.id===id);
+  const wrap=document.getElementById('emp-detail-wrap');
+  wrap.dataset.empId=id;
+  const hasCareer=canView('career_detail'), hasWill=canView('will');
+
+  // career timeline
+  const careerHtml=e.career.map((c,i)=>`
+    <div class="tl-item">
+      <div class="tl-spine">
+        <div class="tl-dot ${c.isSmaregi?'current':'done'}"></div>
+        ${i<e.career.length-1?'<div class="tl-line"></div>':''}
+      </div>
+      <div class="tl-body">
+        <div class="tl-period">${c.period}</div>
+        <div class="tl-co">${c.isSmaregi?'🏢 ':''}${c.company}</div>
+        <div class="tl-role">${c.role}</div>
+        ${hasCareer?`<div class="tl-desc">${c.desc}</div>`:''}
+        ${c.isSmaregi?'<div class="tl-badge-now">現職</div>':''}
+      </div>
+    </div>`).join('');
+
+  // skill bars
+  const skillBarHtml=Object.entries(e.skills||{}).map(([cat,items])=>`
+    <div class="skill-cat" style="margin-bottom:12px">
+      <div class="skill-cat-name">${cat}</div>
+      <div class="skill-pills">
+        ${items.map(([s,l])=>`<span class="sp s${Math.min(l,4)}">${s}</span>`).join('')}
+      </div>
+    </div>`).join('');
+
+  // will
+  const willHtml=hasWill?`
+    <div class="will-block"><div class="will-text">${e.will.text}</div></div>
+    <div style="background:#f9fafb;border-radius:9px;border:1px solid var(--border);overflow:hidden">
+      ${e.will.goals.map(g=>`<div class="goal-row"><div class="goal-icon">${g.icon}</div><div class="goal-txt">${g.text}</div></div>`).join('')}
+    </div>`:lockHtml('will');
+
+  wrap.innerHTML=`
+    <div class="detail-panel">
+      <div class="detail-header">
+        <div class="detail-av-lg" style="background:${e.color};color:${e.tc}">${e.initial}</div>
+        <div class="detail-name">${e.name}</div>
+        <div class="detail-sub">${e.dept} ／ ${e.role} ／ 📍${e.loc} ／ ${e.joinYear}年入社</div>
+        <div class="detail-tags">
+          ${(e.tags||[]).map(t=>`<span class="detail-tag">${t}</span>`).join('')}
+        </div>
+        <div style="margin-top:10px;font-size:12px;opacity:.8;font-style:italic">「${e.quote}」</div>
+      </div>
+      <div class="ptab-bar">
+        <div class="ptab active" onclick="switchPTab(this,'ptp-overview')">👤 概要</div>
+        <div class="ptab" onclick="switchPTab(this,'ptp-career')">📋 職歴${!hasCareer?'<span class="lock-tab-badge">🔒</span>':''}</div>
+        <div class="ptab" onclick="switchPTab(this,'ptp-skills')">🎯 スキル</div>
+        <div class="ptab" onclick="switchPTab(this,'ptp-will')">🚀 Will${!hasWill?'<span class="lock-tab-badge">🔒</span>':''}</div>
+        <div class="ptab" onclick="switchPTab(this,'ptp-howto')">🤝 一緒に働くために</div>
+      </div>
+
+      <div class="ptab-pane active" id="ptp-overview">
+        <div class="prof-section">
+          <div class="sec-title">📌 今やっていること</div>
+          <div class="focus-list">${e.focus.map(f=>`<div class="focus-item"><div class="focus-dot"></div><div class="focus-txt">${f}</div></div>`).join('')}</div>
+        </div>
+        <div class="prof-section">
+          <div class="sec-title">💪 強み・得意なこと</div>
+          <div class="strengths">${e.strengths.map(s=>`<div class="strength-card"><div class="strength-icon">${s.icon}</div><div class="strength-title">${s.title}</div><div class="strength-desc">${s.desc}</div></div>`).join('')}</div>
+        </div>
+        <div class="prof-section">
+          <div class="sec-title">🏅 保有資格・認定</div>
+          ${e.certifications.map(c=>`<span class="badge badge-blue" style="margin:2px">${c}</span>`).join('')||'—'}
+        </div>
+      </div>
+
+      <div class="ptab-pane" id="ptp-career">
+        <div class="prof-section">
+          <div class="sec-title">🗂️ 職歴・経験</div>
+          <div class="timeline">${careerHtml}</div>
+          ${!hasCareer?'<div class="lock-overlay" style="margin-top:12px"><div class="lock-icon">🔒</div><div class="lock-msg">職歴の詳細はマネージャー以上のみ閲覧可</div><button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="openRoleModal()">権限を切り替える</button></div>':''}
+        </div>
+      </div>
+
+      <div class="ptab-pane" id="ptp-skills">
+        <div class="prof-section">
+          <div class="sec-title">🎯 スキルマップ</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;font-size:10px">
+            <span style="display:flex;align-items:center;gap:4px"><span class="sp s4" style="font-size:9px">エキスパート</span></span>
+            <span style="display:flex;align-items:center;gap:4px"><span class="sp s3" style="font-size:9px">上級</span></span>
+            <span style="display:flex;align-items:center;gap:4px"><span class="sp s2" style="font-size:9px">中級</span></span>
+            <span style="display:flex;align-items:center;gap:4px"><span class="sp s1" style="font-size:9px">初級</span></span>
+          </div>
+          ${skillBarHtml}
+        </div>
+      </div>
+
+      <div class="ptab-pane" id="ptp-will">
+        <div class="prof-section">
+          <div class="sec-title">🌟 Will（キャリア志向）</div>
+          ${willHtml}
+        </div>
+      </div>
+
+      <div class="ptab-pane" id="ptp-howto">
+        <div class="prof-section">
+          <div class="sec-title">🤝 この人と一緒に働くために</div>
+          <div class="ws-grid">${Object.entries(e.workstyle||{}).map(([k,v])=>`<div class="ws-item"><div class="ws-label">${k}</div><div class="ws-val">${v}</div></div>`).join('')}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function switchPTab(el, target) {
+  const panel = el.closest('.detail-panel');
+  panel.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
+  panel.querySelectorAll('.ptab-pane').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  panel.querySelector('#'+target).classList.add('active');
+}
+
+// ================================================================
+// SKILLS
+// ================================================================
+const SKILL_KEYS = ['法人営業','カスタマーサクセス','育成プログラム設計','Go','PHP','Python','AWS','データ分析','プロジェクト管理','プレゼンテーション','戦略立案'];
+
+function renderSkillMatrix() {
+  const dept = document.getElementById('skill-dept-filter').value;
+  const filtered = dept ? employees.filter(e=>e.dept===dept) : employees;
+  const allSkills = employees.flatMap(e=>Object.values(e.skills||{}).flat().map(([s])=>s));
+  const uniq = [...new Set(allSkills)].slice(0,10);
+
+  // Stats
+  const totalSkills = [...new Set(employees.flatMap(e=>Object.values(e.skills||{}).flat().map(([s])=>s)))].length;
+  const allLvs = employees.flatMap(e=>Object.values(e.skills||{}).flat().map(([,l])=>l));
+  const gapCount = uniq.filter(s=>{const lvs=filtered.map(e=>flatSkills(e)[s]||0);return lvs.reduce((a,b)=>a+b,0)/lvs.length<2;}).length;
+  document.getElementById('skill-stats').innerHTML=[
+    {v:totalSkills,l:'登録スキル数',c:'var(--brand)'},
+    {v:gapCount,l:'ギャップスキル',c:'var(--warn)'},
+    {v:employees.filter(e=>e.training).length,l:'育成中',c:'var(--green)'},
+  ].map(s=>`<div class="card" style="text-align:center"><div style="font-size:32px;font-weight:900;color:${s.c}">${s.v}</div><div style="font-size:12px;color:var(--sub);margin-top:4px">${s.l}</div></div>`).join('');
+
+  // Matrix
+  const head=document.getElementById('skill-matrix-head');
+  const body=document.getElementById('skill-matrix-body');
+  const labels=['–','初級','中級','上級','エキスパート'];
+  head.innerHTML='<tr><th>社員</th>'+uniq.map(s=>`<th style="font-size:9px;white-space:nowrap">${s}</th>`).join('')+'</tr>';
+  body.innerHTML=filtered.map(e=>{
+    const fs=flatSkills(e);
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:6px">
+        <div style="width:26px;height:26px;border-radius:50%;background:${e.color};color:${e.tc};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800">${e.initial}</div>
+        <div><div style="font-size:12px;font-weight:700">${e.name}</div><div style="font-size:10px;color:var(--sub)">${e.dept}</div></div>
+      </div></td>
+      ${uniq.map(s=>{const lv=fs[s]||0;return `<td class="matrix-cell level-${lv}">${lv>0?labels[lv]:'–'}</td>`;}).join('')}
+    </tr>`;
+  }).join('');
+
+  // Summary
+  document.getElementById('skill-summary').innerHTML=uniq.map(s=>{
+    const lvs=filtered.map(e=>flatSkills(e)[s]||0);
+    const avg=lvs.reduce((a,b)=>a+b,0)/lvs.length;
+    const pct=Math.round(avg/4*100);
+    const col=pct>=70?'var(--green)':pct>=50?'var(--warn)':'var(--danger)';
+    const bc=pct>=70?'badge-green':pct>=50?'badge-orange':'badge-red';
+    return `<div class="skill-bar-wrap">
+      <span class="skill-name-col" style="font-weight:600">${s}</span>
+      <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+      <span class="skill-lv-txt" style="min-width:36px">${pct}%</span>
+      <span class="badge ${bc}" style="margin-left:6px">${pct>=70?'充足':'不足'}</span>
+    </div>`;
+  }).join('');
+}
+
+// ================================================================
+// SIMULATION
+// ================================================================
+let simSrc=null, simEmpId=null, simDst=null;
+
+function renderSim() {
+  const srcDiv=document.getElementById('sim-src');
+  const dstDiv=document.getElementById('sim-dst');
+  srcDiv.innerHTML=simDepts.map(d=>{
+    const members=employees.filter(e=>e.dept===d.name);
+    const chips=members.map(e=>`
+      <div class="mchip ${simEmpId===e.id?'sel':''}" onclick="event.stopPropagation();selectSimEmp(${e.id},'${d.name}')">
+        <div class="mchip-av" style="background:${e.color};color:${e.tc}">${e.initial}</div>
+        ${e.name.split(' ').pop()}
+      </div>`).join('');
+    return `<div class="dept-card ${simSrc===d.name?'sel':''}" onclick="selectSimSrc('${d.name}')">
+      <div class="dept-card-name">🏢 ${d.name}</div>
+      <div class="member-chips">${chips||'<span style="font-size:11px;color:var(--sub)">社員なし</span>'}</div>
+    </div>`;
+  }).join('');
+  dstDiv.innerHTML=simDepts.map(d=>`
+    <div class="dept-card ${simDst===d.name?'tgt':''}" onclick="selectSimDst('${d.name}')">
+      <div class="dept-card-name">🎯 ${d.name}</div>
+      <div style="font-size:11px;color:var(--sub);margin-top:3px">必要スキル: ${d.need.slice(0,3).join('・')}</div>
+    </div>`).join('');
+
+  // AI reco
+  const recos=[{id:0,dst:'コーポレート',pct:88,reason:'スキルマップ・育成経験',bc:'badge-green'},
+               {id:1,dst:'CS',pct:76,reason:'技術共有・育成経験',bc:'badge-blue'},
+               {id:2,dst:'エンジニア',pct:64,reason:'成長ポテンシャル',bc:'badge-orange'}];
+  document.getElementById('ai-reco').innerHTML=recos.map(r=>{
+    const e=employees.find(x=>x.id===r.id);if(!e)return '';
+    const col=r.pct>=80?'var(--green)':r.pct>=60?'var(--warn)':'var(--danger)';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        <div style="width:26px;height:26px;border-radius:50%;background:${e.color};color:${e.tc};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800">${e.initial}</div>${e.name}
+      </div></td>
+      <td>${e.dept}</td><td>${r.dst}</td>
+      <td><span style="font-weight:900;color:${col}">${r.pct}%</span></td>
+      <td><span class="badge ${r.bc}">${r.reason}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="previewMatch(${e.id},'${r.dst}')">詳細確認</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function selectSimSrc(n){simSrc=n;simEmpId=null;simDst=null;document.getElementById('sim-analysis').style.display='none';renderSim();}
+function selectSimEmp(id,dept){simSrc=dept;simEmpId=id;simDst=null;document.getElementById('sim-analysis').style.display='none';renderSim();}
+function selectSimDst(n){if(!simEmpId){alert('まず異動元の社員を選択してください');return;}simDst=n;renderSim();calcMatch();}
+function previewMatch(id,dst){simEmpId=id;simDst=dst;calcMatch();document.getElementById('sim-analysis').scrollIntoView({behavior:'smooth',block:'start'});}
+
+function calcMatch() {
+  const e=employees.find(x=>x.id===simEmpId);
+  const dept=simDepts.find(d=>d.name===simDst);
+  if(!e||!dept)return;
+  const fs=flatSkills(e);
+  const ok=dept.need.filter(s=>(fs[s]||0)>=3);
+  const part=dept.need.filter(s=>(fs[s]||0)>=1&&(fs[s]||0)<3);
+  const miss=dept.need.filter(s=>!fs[s]||fs[s]<1);
+  const pct=Math.round((ok.length+part.length*0.5)/dept.need.length*100);
+  const col=pct>=75?'var(--green)':pct>=50?'var(--warn)':'var(--danger)';
+  const panel=document.getElementById('sim-analysis');
+  panel.style.display='block';
+  document.getElementById('sim-applied').classList.remove('show');
+  document.getElementById('sim-result').innerHTML=`
+    <div class="g2" style="margin-bottom:14px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px">異動対象者</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:44px;height:44px;border-radius:50%;background:${e.color};color:${e.tc};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800">${e.initial}</div>
+          <div><div style="font-size:15px;font-weight:800">${e.name}</div><div style="font-size:11px;color:var(--sub)">${e.dept} → ${simDst}</div></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px">マッチ度スコア</div>
+        <div class="match-meter">
+          <div class="match-pct" style="color:${col}">${pct}%</div>
+          <div class="match-bar-bg"><div class="match-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="verdict-grid">
+      <div class="verdict-box" style="background:#ecfdf5">
+        <div class="verdict-title" style="color:var(--green)">✅ 充足スキル (${ok.length})</div>
+        ${ok.map(s=>`<span class="badge badge-green" style="margin:2px;font-size:10px">${s}</span>`).join('')||'<span style="font-size:11px;color:var(--sub)">なし</span>'}
+      </div>
+      <div class="verdict-box" style="background:#fffbeb">
+        <div class="verdict-title" style="color:var(--warn)">⚠️ 要育成 (${part.length})</div>
+        ${part.map(s=>`<span class="badge badge-orange" style="margin:2px;font-size:10px">${s}</span>`).join('')||'<span style="font-size:11px;color:var(--sub)">なし</span>'}
+      </div>
+      <div class="verdict-box" style="background:#fef2f2">
+        <div class="verdict-title" style="color:var(--danger)">❌ 未習得 (${miss.length})</div>
+        ${miss.map(s=>`<span class="badge badge-red" style="margin:2px;font-size:10px">${s}</span>`).join('')||'<span style="font-size:11px;color:var(--sub)">なし</span>'}
+      </div>
+    </div>`;
+}
+function applySimulation(){document.getElementById('sim-applied').classList.add('show');}
+function resetSimulation(){simSrc=null;simEmpId=null;simDst=null;document.getElementById('sim-analysis').style.display='none';renderSim();}
+
+// ================================================================
+// CAREER
+// ================================================================
+let selCareerEmpId=null;
+
+function renderCareerPage() {
+  document.getElementById('career-list').innerHTML=employees.map(e=>{
+    const t=e.training;
+    return `<div class="emp-row ${selCareerEmpId===e.id?'sel':''}" onclick="selectCareerEmp(${e.id})">
+      <div class="emp-av" style="background:${e.color};color:${e.tc}">${e.initial}</div>
+      <div style="flex:1"><div class="emp-name-txt">${e.name}</div><div class="emp-role-txt">${e.role}</div></div>
+      ${t?`<div style="display:flex;align-items:center;gap:4px">
+        <div style="width:42px;height:4px;background:#f3f4f6;border-radius:2px;overflow:hidden"><div style="height:100%;width:${t.progress}%;background:${t.progress>=70?'var(--green)':t.progress>=40?'var(--warn)':'var(--danger)'}"></div></div>
+        <span style="font-size:9px;color:var(--sub)">${t.progress}%</span>
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('training-tbody').innerHTML=employees.filter(e=>e.training).map(e=>{
+    const t=e.training;
+    const col=t.progress>=70?'var(--green)':t.progress>=40?'var(--warn)':'var(--danger)';
+    const bc=t.progress>=70?'badge-green':t.progress>=40?'badge-orange':'badge-blue';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        <div style="width:26px;height:26px;border-radius:50%;background:${e.color};color:${e.tc};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800">${e.initial}</div>${e.name}
+      </div></td>
+      <td>${t.theme}</td><td>${t.deadline}</td>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        <div style="width:70px;height:6px;background:#f3f4f6;border-radius:3px;overflow:hidden"><div style="height:100%;width:${t.progress}%;background:${col};border-radius:3px"></div></div>
+        <span style="font-size:12px;font-weight:700">${t.progress}%</span>
+      </div></td>
+      <td><span class="badge ${bc}">${t.progress>=70?'完了間近':t.progress>=40?'進行中':'開始済'}</span></td>
+      <td>${t.mentor}</td>
+    </tr>`;
+  }).join('');
+}
+
+function selectCareerEmp(id) {
+  selCareerEmpId=id;
+  renderCareerPage();
+  const e=employees.find(x=>x.id===id);
+  const path=e.careerPath||[];
+  const tlHtml=path.map((step,i)=>`
+    <div class="tl-item">
+      <div class="tl-spine">
+        <div class="tl-dot ${step.status}"></div>
+        ${i<path.length-1?'<div class="tl-line"></div>':''}
+      </div>
+      <div class="tl-body">
+        <div class="tl-co">${step.title}${step.status==='current'?'<span class="badge badge-blue" style="margin-left:6px">現在</span>':step.status==='future'?'<span class="badge badge-orange" style="margin-left:6px">目標</span>':''}</div>
+        ${e.career[i]?`<div class="tl-role">${e.career[i].period}</div>`:''}
+      </div>
+    </div>`).join('');
+
+  const t=e.training;
+  document.getElementById('career-detail-wrap').innerHTML=`
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="width:48px;height:48px;border-radius:50%;background:${e.color};color:${e.tc};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800">${e.initial}</div>
+        <div>
+          <div style="font-size:17px;font-weight:800">${e.name}</div>
+          <div style="font-size:12px;color:var(--sub)">${e.dept} ／ ${e.role}</div>
+          <div style="margin-top:4px">${(e.tags||[]).map(t=>`<span class="badge badge-blue" style="margin-right:3px;font-size:10px">${t}</span>`).join('')}</div>
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🛤️ キャリアパス</div>
+      <div class="timeline">${tlHtml}</div>
+      ${t?`
+        <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📚 育成計画</div>
+          <div style="background:#f9fafb;border-radius:9px;padding:13px;border:1px solid var(--border)">
+            <div style="font-size:14px;font-weight:700">${t.theme}</div>
+            <div style="display:flex;align-items:center;gap:9px;margin-top:9px">
+              <div style="flex:1;height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden">
+                <div style="height:100%;width:${t.progress}%;background:${t.progress>=70?'var(--green)':t.progress>=40?'var(--warn)':'var(--danger)'};border-radius:4px"></div>
+              </div>
+              <span style="font-size:14px;font-weight:800">${t.progress}%</span>
+            </div>
+            <div style="display:flex;gap:14px;margin-top:7px;font-size:11px;color:var(--sub)">
+              <span>📅 期限: ${t.deadline}</span><span>👤 メンター: ${t.mentor}</span>
+            </div>
+            <div style="display:flex;gap:7px;margin-top:10px">
+              <button class="btn btn-primary btn-sm">進捗更新</button>
+              <button class="btn btn-ghost btn-sm">詳細確認</button>
+            </div>
+          </div>
+        </div>`:''}
+    </div>`;
+}
+
+// ================================================================
+// INIT
+// ================================================================
+renderMyProfile();
+</script>
+</body>
+</html>
